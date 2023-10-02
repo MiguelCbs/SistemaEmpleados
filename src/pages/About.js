@@ -1,31 +1,64 @@
 import React from 'react';
 import Tree from 'react-d3-tree';
 
+// Definimos una función para crear un enlace
+function createLink(name, link) {
+  return (
+    <a href={link} key={name}>
+      {name}
+    </a>
+  );
+}
+
 const jerarquiaEmpleados = {
-  name: 'Jerarquía de Empleados',
+  name: createLink('Jerarquía de Empleados'),
   children: [
     {
-      name: 'Jefe de Departamento',
+      name: createLink('Jefe de Departamento'),
       children: [
-        { name: 'Juan Pérez', cargo: 'Gerente de Ventas' },
-        { name: 'María Rodríguez', cargo: 'Gerente de Marketing' },
-        // Otros empleados del Jefe de Departamento
+        {
+          name: createLink('Juan Pérez', '/Personal'),
+          attributes: { Cargo: 'Gerente de Ventas' },
+          _collapsed: true,
+        },
+        {
+          name: createLink('María Rodríguez', '/Personal'),
+          attributes: { Cargo: 'Gerente de Marketing' },
+          _collapsed: true,
+        },
+        
       ],
     },
     {
-      name: 'Gerentes',
+      name: createLink('Gerentes'),
       children: [
-        { name: 'Carlos Sánchez', cargo: 'Gerente de Desarrollo' },
-        { name: 'Laura González', cargo: 'Gerente de Recursos Humanos' },
-        // Otros empleados de Gerentes
+        {
+          name: createLink('Carlos Sánchez', '/Personal'),
+          attributes: { Cargo: 'Gerente de Desarrollo' },
+          _collapsed: true,
+        },
+        {
+          name: createLink('Laura González', '/Personal'),
+          attributes: { Cargo: 'Gerente de Recursos Humanos' },
+          _collapsed: true,
+        },
+        
       ],
     },
     {
-      name: 'Empleados',
+      name: createLink('Empleados'),
       children: [
-        { name: 'Roberto Torres', cargo: 'Analista de Datos' },
-        { name: 'Sofía Fernández', cargo: 'Diseñador Gráfico' },
-        // Otros empleados de Empleados
+        {
+          name: createLink('Roberto Torres', '/Personal'),
+          attributes: { Cargo: 'Analista de Datos' },
+          _collapsed: true,
+        },
+        {
+          name: createLink('Sofía Fernández', '/Personal'),
+          attributes: { Cargo: 'Diseñador Gráfico' },
+          _collapsed: true,
+        },
+        
       ],
     },
   ],
@@ -36,7 +69,15 @@ function About() {
     <div className="App">
       <h1>Organigrama</h1>
       <div style={{ width: '100%', height: '400px' }}>
-        <Tree data={jerarquiaEmpleados} orientation="vertical" />
+        <Tree
+          data={jerarquiaEmpleados}
+          orientation="vertical"
+          collapsible={true}
+          separation={{
+            siblings: 2,
+            nonSiblings: 2.5,
+          }}
+        />
       </div>
     </div>
   );

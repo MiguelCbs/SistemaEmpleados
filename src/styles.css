@@ -158,6 +158,9 @@
     backface-visibility: hidden;
     transition: transform 0.5s;
     transform: translateZ(0); /* Establece la posición inicial de la tarjeta */
+    background: #081b29; /* Eliminar el fondo */
+    box-shadow: none;
+    border: none;
   }
   
   
@@ -217,6 +220,16 @@
     100% {
       transform: rotateY(360deg);
     }
+  }
+
+  .boton-redireccion {
+    color: #02a2e7; /* Color de texto similar al de un enlace */
+    font-weight: bold;
+    padding: 0; /* Eliminar el relleno para que sea más sutil */
+    cursor: pointer; /* Cambiar el cursor al pasar por encima para indicar que es interactivo */
+    background: #081b29; /* Eliminar el fondo */
+    text-decoration: none;
+    
   }
 
   .modal-content {
@@ -365,14 +378,19 @@
 
   .rd3t-label__title {
     fill: white !important;
-   
-  }
+    font-size: 14px;
+}
 
-  .rd3t-label__title:hover{
-    fill: #02a2e7 !important;
-    
-    
-  }
+/* Estilo para los títulos en hover */
+.rd3t-label__title:hover {
+  fill: #02a2e7 !important;
+}
+
+.rd3t-label__attributes {
+  fill: #02a2e7 !important;
+  font-size: 14px;
+}
+
 
   .rd3t-leaf-node circle {
     fill: #081b29;
@@ -386,6 +404,8 @@
     stroke: #02a2e7;
     
   }
+
+  
 
   /* Estilos para la página de perfil del empleado */
 .employee-profile {
