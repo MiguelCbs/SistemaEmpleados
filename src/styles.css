@@ -131,7 +131,7 @@
 
  
   .gallery-container {
-    margin-top: 120px;
+    margin-top: 80px;
     margin-left: 50px;
     perspective: 1200px;
   }
@@ -190,10 +190,12 @@
     margin: 0 10px;
     display: flex;
     align-items: center;
+    border-color: white;
     border-radius: 50%;
     justify-content: center;
     background-color: #081b29;
     transition: background-color 0.3s ease;
+    text-align: center;
   }
   
   .btn.prev::before,
@@ -223,11 +225,11 @@
   }
 
   .boton-redireccion {
-    color: #02a2e7; /* Color de texto similar al de un enlace */
+    color: #02a2e7;
     font-weight: bold;
-    padding: 0; /* Eliminar el relleno para que sea más sutil */
-    cursor: pointer; /* Cambiar el cursor al pasar por encima para indicar que es interactivo */
-    background: #081b29; /* Eliminar el fondo */
+    padding: 0;
+    cursor: pointer;
+    background: #081b29;
     text-decoration: none;
     
   }
@@ -250,6 +252,15 @@
   .modal-footer {
     background-color: #081b29;
     border-top: none;
+  }
+
+  .form-group label {
+    margin-bottom: 10px;
+    
+  }
+
+  .form-control {
+    margin-bottom: 10px; 
   }
 
   .btn.btn-success {
@@ -309,36 +320,48 @@
   .App {
     padding-top: 0%;
     margin-top: 0; 
-    flex-direction: column;
+    flex-direction: center;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
-    padding: 20px;
+    height: 100vh;
+    padding: 0px;
     margin: 0 auto;
-    background-color: #081b29;     
+    background-color: #081b29;   
+    text-align: center;
+    
   }
   
   
   h1 {
-    margin-top: 0%; 
+    margin-top: 3%; 
     font-size: 20px;
     color: white; 
     margin-bottom: 10px;
     margin-left: 100px;
+    
   }
   
  
   #tree-container {
     
-    width: 100%;
-    height: 400px;
-    background-color: #fff;
-    border: 1px solid #ccc;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    max-width: 100%;
+    height: 100%;
+    box-shadow: none;
     position: absolute;
     top: 50%;
     left: 0;
     transform: translateY(-50%);
+    max-width: 800px;
+    display: flex;
+    justify-content: center;
+    
+    
+    
+  }
+
+  .centered-content {
+    width: 100%; 
+    height: 100%;
     
   }
 
@@ -405,9 +428,6 @@
     
   }
 
-  
-
-  /* Estilos para la página de perfil del empleado */
 .employee-profile {
   display: flex;
   flex-direction: column;
@@ -417,14 +437,14 @@
   margin-left: 200px;
 }
 
-/* Estilos para la imagen de perfil */
+
 .profile-picture img {
   width: 150px;
   height: 150px;
-  border-radius: 50%; /* Esto crea un círculo con borde redondeado */
+  border-radius: 50%;
   margin-bottom: 10px;
   margin-top: 50px;
-  object-fit: cover; /* Ajusta la imagen al círculo sin distorsión */
+  object-fit: cover;
   transition: transform 0.5s ease;
   border-top: .2rem solid #02a2e7;
   border-bottom: .2rem solid #02a2e7;
@@ -433,7 +453,6 @@
 }
 
 
-/* Estilos para la información personal */
 .employee-info {
   background-color: #081b29;
   padding: 20px;
@@ -443,28 +462,28 @@
   max-width: 400px;
 }
 
-/* Estilos para el título del nombre del empleado */
+
 .employee-info h1 {
   font-size: 24px;
   margin: 0;
 }
 
-/* Estilos para los detalles personales */
+
 .employee-info p {
   font-size: 16px;
   margin: 10px 0;
 }
 
 
-/* Estilos responsivos */
+
 @media (max-width: 768px) {
-  /* Reducir el tamaño de la imagen de perfil en pantallas más pequeñas */
+  
   .profile-picture img {
     width: 100px;
     height: 100px;
   }
 
-  /* Alinear el texto a la izquierda en pantallas más pequeñas */
+
   .employee-info {
     text-align: left;
   }
@@ -476,11 +495,11 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7); /* Fondo oscuro semi-transparente */
+  background-color: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000; /* Z-index alto para asegurar que esté por encima de todo */
+  z-index: 1000;
 }
 
 

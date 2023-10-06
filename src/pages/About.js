@@ -1,7 +1,7 @@
 import React from 'react';
 import Tree from 'react-d3-tree';
 
-// Definimos una función para crear un enlace
+
 function createLink(name, link) {
   return (
     <a href={link} key={name}>
@@ -27,7 +27,7 @@ const jerarquiaEmpleados = {
           _collapsed: true,
         },
         
-      ],
+      ],  
     },
     {
       name: createLink('Gerentes'),
@@ -65,19 +65,34 @@ const jerarquiaEmpleados = {
 };
 
 function About() {
+  
+  
+  
   return (
     <div className="App">
       <h1>Organigrama</h1>
-      <div style={{ width: '100%', height: '400px' }}>
-        <Tree
-          data={jerarquiaEmpleados}
-          orientation="vertical"
-          collapsible={true}
-          separation={{
-            siblings: 2,
-            nonSiblings: 2.5,
+      <div className="tree-container">
+        {}
+        <div
+          className="centered-content"
+          style={{
+            position: 'fixed',
+            width: '100%',
+            height: '100%',
+            overflow: 'auto',
           }}
-        />
+          draggable={false} 
+        >
+          <Tree
+            data={jerarquiaEmpleados}
+            orientation="vertical"
+            collapsible={true}
+            separation={{
+              siblings: 2,
+              nonSiblings: 2,
+            }}
+          />
+        </div>
       </div>
     </div>
   );

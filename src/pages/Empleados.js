@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { Modal, ModalBody, ModalFooter, ModalHeader } from 'reactstrap';
 
-const url="https://localhost:44302/api/empresas/";
+const url="https://localhost:44302/api/empleado/";
 
 class Empleados extends Component {
 state={
@@ -15,9 +15,10 @@ state={
   form:{
     id: '',
     nombre: '',
-    pais: '',
-    capital_bursatil: '',
-    tipoModal: ''
+    apellidoPat: '',
+    apellidoMat: '',
+    fecNacimiento: '',
+    fotografia: ''
   }
 }
 
@@ -57,14 +58,16 @@ modalInsertar=()=>{
   this.setState({modalInsertar: !this.state.modalInsertar});
 }
 
-seleccionarEmpresa=(empresa)=>{
+seleccionarEmpresa=(empleado)=>{
   this.setState({
     tipoModal: 'actualizar',
     form: {
-      id: empresa.id,
-      nombre: empresa.nombre,
-      pais: empresa.pais,
-      capital_bursatil: empresa.capital_bursatil
+      id: empleado.id,
+      nombre: empleado.nombre,
+      apellidoPat: empleado.apellidoPat,
+      apellidoMat: empleado.apellidoMat,
+      fecNacimiento: empleado.fecNacimiento,
+      fotografia: empleado.fotografia
     }
   })
 }
@@ -97,23 +100,27 @@ console.log(this.state.form);
         <tr>
           <th>ID</th>
           <th>Nombre</th>
-          <th>Apellido</th>
-          <th>Teléfono</th>
-          <th>Dirección</th>
+          <th>Apellido Paterno</th>
+          <th>Apellido Materno</th>
+          <th>Fecha de Nacimiento</th>
+          <th>Fotografía</th>
         </tr>
       </thead>
       <tbody>
-        {this.state.data.map(empresa=>{
+        {this.state.data.map(empleado=>{
           return(
             <tr>
-          <td>{empresa.id}</td>
-          <td>{empresa.nombre}</td>
-          <td>{empresa.pais}</td>
-          <td>{new Intl.NumberFormat("en-EN").format(empresa.capital_bursatil)}</td>
+          <td>{empleado.id}</td>
+          <td>{empleado.nombre}</td>
+          <td>{empleado.apellidoPat}</td>
+          <td>{empleado.apellidoMat}</td>
+          <td>{empleado.fecNacimiento}</td>
+          <td>{empleado.fotografia}</td>
+          <td>{new Intl.NumberFormat("en-EN").format(empleado.telefono)}</td>
           <td>
-                <button className="btn btn-primary" onClick={()=>{this.seleccionarEmpresa(empresa); this.modalInsertar()}}><FontAwesomeIcon icon={faEdit}/></button>
+                <button className="btn btn-primary" onClick={()=>{this.seleccionarEmpresa(empleado); this.modalInsertar()}}><FontAwesomeIcon icon={faEdit}/></button>
                 {"   "}
-                <button className="btn btn-danger" onClick={()=>{this.seleccionarEmpresa(empresa); this.setState({modalEliminar: true})}}><FontAwesomeIcon icon={faTrashAlt}/></button>
+                <button className="btn btn-danger" onClick={()=>{this.seleccionarEmpresa(empleado); this.setState({modalEliminar: true})}}><FontAwesomeIcon icon={faTrashAlt}/></button>
                 </td>
           </tr>
           )
@@ -135,11 +142,15 @@ console.log(this.state.form);
                     <label htmlFor="nombre">Nombre</label>
                     <input className="form-control" type="text" name="nombre" id="nombre" onChange={this.handleChange} value={form?form.nombre: ''}/>
                     <br />
-                    <label htmlFor="apellido">Apellido</label>
-                    <input className="form-control" type="text" name="apellido" id="apellido" onChange={this.handleChange} value={form?form.apellido: ''}/>
+                    <label htmlFor="apellidoPat">Apellido Paterno</label>
+                    <input className="form-control" type="text" name="apellidoPat" id="apellidoPat" onChange={this.handleChange} value={form?form.apellidoPat: ''}/>
                     <br />
-                    <label htmlFor="telefono">Telefono</label>
-                    <input className="form-control" type="text" name="telefono" id="telefono" onChange={this.handleChange} value={form?form.telefono:''}/>
+                    <label htmlFor="apellidoMat">Apellido Materno</label>
+                    <input className="form-control" type="text" name="apellidoMat" id="apellidoMat" onChange={this.handleChange} value={form?form.apellidoMat:''}/>
+                    <label htmlFor="fecNacimiento">Fecha de Nacimiento</label>
+                    <input className="form-control" type="text" name="fecNacimiento" id="fecNacimiento" onChange={this.handleChange} value={form?form.fecNacimiento:''}/>
+                    <label htmlFor="fotografia">Fotografía</label>
+                    <input className="form-control" type="file" name="fotografia" id="fotografia" onChange={this.handleFileUpload} accept="image/*"/>                   
                   </div>
                 </ModalBody>
 
