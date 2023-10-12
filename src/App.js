@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './styles.css';
-import { Route, Link, Routes } from 'react-router-dom'; // Importa Route y Routes en lugar de BrowserRouter
+import { Route, Link, Routes } from 'react-router-dom';
 import Tree from 'react-d3-tree';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import DatePicker from 'react-datepicker';
@@ -16,6 +16,8 @@ function App() {
     '/static/img/img5.jpg',
     '/static/img/img6.jpg',
   ];
+
+  
 
   function handlePrevClick() {
     setCurrentRotation(currentRotation + 360 / images.length);
@@ -82,23 +84,23 @@ function App() {
   return (
     <div className="App">
       <header className="header">
-    <a href="/" className="logo">
-      Cibercom
-    </a>
-    <div className="bx bx-manu" id="menu-icon">
-      <i className="bx bx-menu"></i>
-    </div>
-    <nav className="navbar">
-      <Link to="/" className="active">
-        Home
-      </Link>
-      <Link to="/Organigrama">Organigrama</Link>
-      <Link to="/Empleados">Empleados</Link>
-      <Link to="/Personal">Personal</Link>
-    </nav>
-  </header>
+        <a href="/" className="logo">
+          Cibercom
+        </a>
+        <div className="bx bx-manu" id="menu-icon">
+          <i className="bx bx-menu"></i>
+        </div>
+        <nav className="navbar">
+          <Link to="/" className="active">
+            Home
+          </Link>
+          <Link to="/Organigrama">Organigrama</Link>
+          <Link to="/Empleados">Empleados</Link>
+          <Link to="/Personal">Personal</Link> {/* Agrega la navegación para "Personal" */}
+        </nav>
+      </header>
 
-  <Routes>
+      <Routes>
         <Route
           path="/"
           element={
@@ -112,9 +114,7 @@ function App() {
         />
         <Route path="/Organigrama" element={<Organigrama jerarquiaEmpleados={jerarquiaEmpleados} />} />
         <Route path="/Empleados" element={<Empleados />} />
-        <Route path="/Personal" element={<Personal />} />
-        
-        {/* Agrega más rutas para otras páginas aquí */}
+        <Route path="/Personal" element={<Personal />} /> {/* Agrega la ruta para "Personal" */}
       </Routes>
 
       <footer className="footer">
@@ -122,7 +122,7 @@ function App() {
           <p>Copyright &copy; 2023 by Cibercom | All Rights Reserved.</p>
         </div>
         <div className="footer-iconTop">
-          <a href="#">
+          <a href="">
             <i className="bx bx-up-arrow-alt"></i>
           </a>
         </div>
@@ -147,8 +147,7 @@ function Home({ currentRotation, handlePrevClick, handleNextClick, images }) {
                 }}
               >
                 <img src={image} alt={`Image ${index + 1}`} />
-                {/* Agrega un botón Link que redirige a otra página */}
-                <Link to="/Empleados" className="boton-redireccion">
+                <Link to="/Personal" className="btn-direction">
                   Ver
                 </Link>
               </div>
@@ -369,13 +368,207 @@ function Empleados() {
   );
 }
 
-function Personal (){
-  <div className='Personal'>
+function Personal() {
+  return (
+    <div className="Personal">
+      
+      <div className="personal-content">
+        <div className="section">
+          
+          <section class="about" id="about">
+      <h2 class="heading">Sobre <span>Mi</span></h2>
 
-    <h1>hola</h1>
+      <div class="about-img">
+        <img src="/static/img/img2.jpg" alt="about" />
+        <span class="circle-spin"></span>
+      </div>
 
-  </div>
+      <div class="about-content">
+        <h3>-Nombre-</h3>
+        <p>
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Sunt deserunt
+          qui atque, quos eos tempore? Culpa officia dicta, illo, sit dolorum
+          aut error cum ipsam ab eos odit doloremque. Nisi qui unde error
+          tempore adipisci quos corporis incidunt in? Eos quia labore expedita
+          pariatur laborum iure suscipit, quos aut minima!
+        </p>
 
+        <p>
+        <section class="education" id="education">
+      <h2 class="heading">Mi <span>Trayectoria</span></h2>
+
+      <div class="education-row">
+        <div class="education-column">
+          <h3 class="title">Educación</h3>
+
+          <div class="education-box">
+            <div class="education-content">
+              <div class="content">
+                <div class="year">
+                  <i class="bx bxs-calendar"></i> 2017 - 2018
+                </div>
+                <h3>Universidad</h3>
+                <p>
+                  Lorem ipsum dolor sit amet consectetur adipisicing elit. Ea
+                  saepe quisquam non distinctio architecto blanditiis similique
+                  placeat in accusantium eos.
+                </p>
+              </div>
+            </div>
+
+            <div class="education-content">
+              <div class="content">
+                <div class="year">
+                  <i class="bx bxs-calendar"></i> 2018 - 2019
+                </div>
+                <h3>Universidad</h3>
+                <p>
+                  Lorem ipsum dolor sit amet consectetur adipisicing elit. Ea
+                  saepe quisquam non distinctio architecto blanditiis similique
+                  placeat in accusantium eos.
+                </p>
+              </div>
+            </div>
+
+            <div class="education-content">
+              <div class="content">
+                <div class="year">
+                  <i class="bx bxs-calendar"></i> 2019 - 2020
+                </div>
+                <h3>Universidad</h3>
+                <p>
+                  Lorem ipsum dolor sit amet consectetur adipisicing elit. Ea
+                  saepe quisquam non distinctio architecto blanditiis similique
+                  placeat in accusantium eos.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="education-column">
+          <h3 class="title">Experiencia</h3>
+
+          <div class="education-box">
+            <div class="education-content">
+              <div class="content">
+                <div class="year">
+                  <i class="bx bxs-calendar"></i> 2017 - 2018
+                </div>
+                <h3>Web Developer</h3>
+                <p>
+                  Lorem ipsum dolor sit amet consectetur adipisicing elit. Ea
+                  saepe quisquam non distinctio architecto blanditiis similique
+                  placeat in accusantium eos.
+                </p>
+              </div>
+            </div>
+
+            <div class="education-content">
+              <div class="content">
+                <div class="year">
+                  <i class="bx bxs-calendar"></i> 2018 - 2019
+                </div>
+                <h3>Web Developer</h3>
+                <p>
+                  Lorem ipsum dolor sit amet consectetur adipisicing elit. Ea
+                  saepe quisquam non distinctio architecto blanditiis similique
+                  placeat in accusantium eos.
+                </p>
+              </div>
+            </div>
+
+            <div class="education-content">
+              <div class="content">
+                <div class="year">
+                  <i class="bx bxs-calendar"></i> 2019 - 2020
+                </div>
+                <h3>Web Developer</h3>
+                <p>
+                  Lorem ipsum dolor sit amet consectetur adipisicing elit. Ea
+                  saepe quisquam non distinctio architecto blanditiis similique
+                  placeat in accusantium eos.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+        </p>
+
+        <p>
+        <h2 class="heading">Mis <span>Habilidades</span></h2>
+        </p>
+
+        <p>
+        <div class="skills-row">
+        <div class="skills-column">
+          <h3 class="title">Habilidades de Programación</h3>
+
+          <div class="skills-box">
+            <div class="skills-content">
+              <div class="progress">
+                <h3>HTML <span>90%</span></h3>
+                <div class="bar"><span></span></div>
+              </div>
+
+              <div class="progress">
+                <h3>CSS <span>80%</span></h3>
+                <div class="bar"><span></span></div>
+              </div>
+
+              <div class="progress">
+                <h3>JavaScript <span>65%</span></h3>
+                <div class="bar"><span></span></div>
+              </div>
+
+              <div class="progress">
+                <h3>Python <span>75%</span></h3>
+                <div class="bar"><span></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="skills-column">
+          <h3 class="title">Habilidades Profesionales</h3>
+
+          <div class="skills-box">
+            <div class="skills-content">
+              <div class="progress">
+                <h3>Web Design <span>25%</span></h3>
+                <div class="bar"><span></span></div>
+              </div>
+
+              <div class="progress">
+                <h3>Web Development <span>73%</span></h3>
+                <div class="bar"><span></span></div>
+              </div>
+
+              <div class="progress">
+                <h3>Graphinc Design <span>52%</span></h3>
+                <div class="bar"><span></span></div>
+              </div>
+
+              <div class="progress">
+                <h3>SEO Marketing <span>65%</span></h3>
+                <div class="bar"><span></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+        </p>
+
+       
+      </div>
+    </section>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default App;
