@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './styles.css';
 import { Route, Link, Routes } from 'react-router-dom';
 import Tree from 'react-d3-tree';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+
 
 function App() {
   const [currentRotation, setCurrentRotation] = useState(0);
@@ -96,7 +97,7 @@ function App() {
           </Link>
           <Link to="/Organigrama">Organigrama</Link>
           <Link to="/Empleados">Empleados</Link>
-          <Link to="/Personal">Personal</Link> {/* Agrega la navegación para "Personal" */}
+          
         </nav>
       </header>
 
@@ -184,15 +185,30 @@ function Organigrama({ jerarquiaEmpleados }) {
 
 function Empleados() {
   const [empleados, setEmpleados] = useState([]); // Estado para almacenar la lista de empleados
+
+  useEffect (()=>{ 
+    fetch ('http://localhost:3000/empleados',{      
+      method:'get',
+      headers:{
+      'Access-Control-Allow-Origin': '*'
+      }
+    })
+    .then ((response)=>{
+      return response.json()
+    }).then ((json)=>{
+setEmpleados(json)
+    })
+  },[ ]);
+
   const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState(null); // Estado para almacenar el empleado seleccionado
   const [modalAgregar, setModalAgregar] = useState(false); // Estado para mostrar/ocultar el modal de agregar empleado
   const [formEmpleado, setFormEmpleado] = useState({
     id: '',
-    nombre: '',
-    apellidoPat: '',
-    apellidoMat: '',
-    fecNacimiento: null, // Usa null en lugar de una cadena para el campo de fecha
-    fotografia: '',
+    Nombre: '',
+    ApelPaterno: '',
+    ApelMaterno: '',
+    FecNacimiento: null, // Usa null en lugar de una cadena para el campo de fecha
+    
   });
 
   // Función para abrir el modal de agregar empleado
@@ -205,11 +221,11 @@ function Empleados() {
     setModalAgregar(false);
     setFormEmpleado({
       id: '',
-      nombre: '',
-      apellidoPat: '',
-      apellidoMat: '',
-      fecNacimiento: '',
-      fotografia: '',
+      Nombre: '',
+      ApelPaterno: '',
+      ApelMaterno: '',
+      FecNacimiento: '',
+      
     });
   };
 
@@ -217,19 +233,34 @@ function Empleados() {
   const agregarEmpleado = () => {
     // Agregar lógica para agregar un empleado aquí
     const nuevoEmpleado = {
-      id: formEmpleado.id,
-      nombre: formEmpleado.nombre,
-      apellidoPat: formEmpleado.apellidoPat,
-      apellidoMat: formEmpleado.apellidoMat,
-      fecNacimiento: formEmpleado.fecNacimiento,
-      fotografia: formEmpleado.fotografia,
+      
+      Nombre: formEmpleado.Nombre,
+      ApelPaterno: formEmpleado.ApelPaterno,
+      ApelMaterno: formEmpleado.ApelMaterno,
+      FecNacimiento: formEmpleado.FecNacimiento,
+      
     };
+    console.log(nuevoEmpleado)
+    fetch ('http://localhost:3000/empleados',{      
+      method:'post',
+      headers:{
+        'Content-type':'application/json', 
+        'Accept':'application/json',
+        'Access-Control-Allow-Origin': '*'
+      },
+      body:JSON.stringify(nuevoEmpleado)
+    })
+    .then ((response)=>{
+      return response.json()
+    }).then ((json)=>{
+
+    })
     setEmpleados([...empleados, nuevoEmpleado]);
     cerrarModalAgregar();
   };
 
   const handleFechaNacimientoChange = (date) => {
-    setFormEmpleado({ ...formEmpleado, fecNacimiento: date });
+    setFormEmpleado({ ...formEmpleado, FecNacimiento: date });
   };
 
 
@@ -265,12 +296,10 @@ function Empleados() {
             {empleados.map((empleado) => (
               <tr key={empleado.id}>
                 <td>{empleado.id}</td>
-                <td>{empleado.nombre}</td>
-                <td>{empleado.apellidoPat}</td>
-                <td>{empleado.apellidoMat}</td>
-                <td>
-                  {empleado.fecNacimiento ? empleado.fecNacimiento.toLocaleDateString() : ''}
-                </td>
+                <td>{empleado.Nombre}</td>
+                <td>{empleado.ApelPaterno}</td>
+                <td>{empleado.ApelMaterno}</td>
+                
                 <td>{empleado.fotografia}</td>
                 <td>
                   <button
@@ -316,36 +345,36 @@ function Empleados() {
                 type="text"
                 name="nombre"
                 id="nombre"
-                value={formEmpleado.nombre}
-                onChange={(e) => setFormEmpleado({ ...formEmpleado, nombre: e.target.value })}
+                value={formEmpleado.Nombre}
+                onChange={(e) => setFormEmpleado({ ...formEmpleado, Nombre: e.target.value })}
               />
             </div>
             <div className="form-item">
-              <label htmlFor="apellidoPat">Apellido Paterno:</label>
+              <label htmlFor="ApelPaterno">Apellido Paterno:</label>
               <input
                 className="form-control"
                 type="text"
-                name="apellidoPat"
-                id="apellidoPat"
-                value={formEmpleado.apellidoPat}
-                onChange={(e) => setFormEmpleado({ ...formEmpleado, apellidoPat: e.target.value })}
+                name="ApelPaterno"
+                id="ApelPaterno"
+                value={formEmpleado.ApelPaterno}
+                onChange={(e) => setFormEmpleado({ ...formEmpleado, ApelPaterno: e.target.value })}
               />
             </div>
             <div className="form-item">
-              <label htmlFor="apellidoMat">Apellido Materno:</label>
+              <label htmlFor="ApelMaterno">Apellido Materno:</label>
               <input
                 className="form-control"
                 type="text"
-                name="apellidoMat"
-                id="apellidoMat"
-                value={formEmpleado.apellidoMat}
-                onChange={(e) => setFormEmpleado({ ...formEmpleado, apellidoMat: e.target.value })}
+                name="ApelMaterno"
+                id="ApelMaterno"
+                value={formEmpleado.ApelMaterno}
+                onChange={(e) => setFormEmpleado({ ...formEmpleado, ApelMaterno: e.target.value })}
               />
             </div>
             <div className="form-item">
               <label htmlFor="fechaNac">Fecha de Nacimiento:</label>
               <DatePicker
-                selected={formEmpleado.fecNacimiento}
+                selected={formEmpleado.FecNacimiento}
                 onChange={handleFechaNacimientoChange}
                 dateFormat="dd/MM/yyyy"
                 className="form-control"
