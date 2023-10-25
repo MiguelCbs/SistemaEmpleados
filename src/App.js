@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './styles.css';
 import { Route, Link, Routes } from 'react-router-dom';
 import Tree from 'react-d3-tree';
-import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
+import { Modal, ModalHeader, ModalBody, ModalFooter, Navbar } from 'reactstrap';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -17,6 +17,41 @@ function App() {
     '/static/img/img5.jpg',
     '/static/img/img6.jpg',
   ];
+  //Display control 2
+  useEffect(() => {
+    const menuIcon = document.querySelector('#menu-icon');
+    const navbar = document.querySelector('.navbar');
+    if (menuIcon) {
+      menuIcon.onclick = () => {
+        menuIcon.classList.toggle('bx-x');
+        navbar.classList.toggle('active');
+      };
+    }
+  }, []);
+
+  //Display control
+  let sections = document.querySelectorAll('section');
+  let navLinks = document.querySelectorAll('header nav a');
+
+  window.onscroll = () => {
+    sections.forEach(sec => {
+      let top = window.scrollY;
+      let offset = sec.offsetTop - 100;
+      let height = sec.offsetHeight; 
+      let id = sec.getAttribute('id');
+
+      if(top >= offset && top < offset ){
+        navLinks.forEach(links => {
+          links.classList.remove('active');
+          document.querySelector('header nav a[href*='+ id +']').classList.add('active');
+        });
+      }
+    });
+
+    let header = document.querySelector('header');
+
+    header.classList.toggle('sticky',window.scrollY > 100);
+  }
 
   
 
@@ -88,8 +123,8 @@ function App() {
         <a href="/" className="logo">
           Cibercom
         </a>
-        <div className="bx bx-manu" id="menu-icon">
-          <i className="bx bx-menu"></i>
+        <div >
+        <div id='menu-icon' color='var(--text-color)' class='bx bx-menu'></div>
         </div>
         <nav className="navbar">
           <Link to="/" className="active">
@@ -97,7 +132,8 @@ function App() {
           </Link>
           <Link to="/Organigrama">Organigrama</Link>
           <Link to="/Empleados">Empleados</Link>
-          
+
+          <span class="active-nav"></span>
         </nav>
       </header>
 
@@ -124,7 +160,7 @@ function App() {
         </div>
         <div className="footer-iconTop">
           <a href="">
-            <i className="bx bx-up-arrow-alt"></i>
+          <box-icon name='up-arrow-alt'></box-icon>
           </a>
         </div>
       </footer>
@@ -185,6 +221,9 @@ function Organigrama({ jerarquiaEmpleados }) {
 
 function Empleados() {
   const [empleados, setEmpleados] = useState([]); // Estado para almacenar la lista de empleados
+  const [globalFilter, setglobalFilter] = useState(''); // Estado para almacenar el filro pro nombres
+  const [globalpage, setglobalpage] = useState(0);
+  
 
   useEffect (()=>{ 
     fetch ('http://localhost:3000/empleados',{      
@@ -263,6 +302,38 @@ setEmpleados(json)
     setFormEmpleado({ ...formEmpleado, FecNacimiento: date });
   };
 
+  //Metodo de filtrado
+  let resultado = [];
+  if (!globalFilter) {
+    resultado = empleados.slice(globalpage, globalpage + 3);
+
+  } else {
+      resultado = empleados.filter((dato) =>
+      dato.Nombre.toLowerCase().includes(globalFilter.toLowerCase())
+    ).slice(globalpage , globalpage  + 3);
+  }
+
+  //Siguiente pagina
+  const NextPage = () => {
+    if (!globalFilter) {
+      if (empleados.length > globalpage + 3) {
+        setglobalpage(globalpage + 3);
+      }
+    } else {
+      const empleadosFiltrados = empleados.filter((dato) =>
+        dato.Nombre.toLowerCase().includes(globalFilter.toLowerCase())
+      );
+      if (empleadosFiltrados.length > globalpage + 3) {
+        setglobalpage(globalpage + 3);
+      }
+    }
+  };
+
+  const PrevPage = () =>{
+    if(globalpage > 0)
+    setglobalpage(globalpage - 3 );
+  }
+  
 
   const handleEditarEmpleado = (empleado) => {
     // Agrega lógica para editar el empleado aquí
@@ -280,7 +351,16 @@ setEmpleados(json)
         <button className="btn" onClick={abrirModalAgregar}>
           Agregar Empleado
         </button>
-        <table className="table">
+        <div>
+        <input
+        type='text'
+        className="inputEmpleados"
+        placeholder='Buscar...'
+        value={globalFilter}
+        onChange={e => setglobalFilter(e.target.value)}
+        />
+        </div>
+        <table className="table" >
           <thead>
             <tr>
               <th>ID</th>
@@ -293,7 +373,7 @@ setEmpleados(json)
             </tr>
           </thead>
           <tbody>
-            {empleados.map((empleado) => (
+            {resultado.map((empleado) => (
               <tr key={empleado.id}>
                 <td>{empleado.id}</td>
                 <td>{empleado.Nombre}</td>
@@ -320,6 +400,20 @@ setEmpleados(json)
             ))}
           </tbody>
         </table>
+        <div className='mt-4 flex items-center justify-between '>
+          <div className='flex items-center gap-2'>
+            <button className='btn'
+            onClick={PrevPage}
+            >
+              {'Anterior'}
+            </button>
+            <button className='btn'
+            onClick={NextPage}
+            >
+              {'Siguiente'}
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Modal para agregar empleado */}
