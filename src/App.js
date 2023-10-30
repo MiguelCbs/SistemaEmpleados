@@ -5,10 +5,15 @@ import Tree from 'react-d3-tree';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Navbar } from 'reactstrap';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { useFilePicker } from 'use-file-picker';
+import { FileAmountLimitValidator, FileSizeValidator, ImageDimensionsValidator } from 'use-file-picker/validators';
 
 
 function App() {
   const [currentRotation, setCurrentRotation] = useState(0);
+
+  
+
   const images = [
     '/static/img/img1.jpg',
     '/static/img/img2.jpg',
@@ -132,6 +137,7 @@ function App() {
           </Link>
           <Link to="/Organigrama">Organigrama</Link>
           <Link to="/Empleados">Empleados</Link>
+          <Link to="/Login">Login</Link>
 
           <span class="active-nav"></span>
         </nav>
@@ -151,6 +157,7 @@ function App() {
         />
         <Route path="/Organigrama" element={<Organigrama jerarquiaEmpleados={jerarquiaEmpleados} />} />
         <Route path="/Empleados" element={<Empleados />} />
+        <Route path="/Login" element={<Login />} />
         <Route path="/Personal" element={<Personal />} /> {/* Agrega la ruta para "Personal" */}
       </Routes>
 
@@ -201,31 +208,164 @@ function Home({ currentRotation, handlePrevClick, handleNextClick, images }) {
 }
 
 function Organigrama({ jerarquiaEmpleados }) {
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  // Calcula el valor de translate en función del tamaño de la pantalla
+  const translateX = windowWidth / 2.5; // Centra horizontalmente
+  const translateY = 80; // Define la posición vertical
+
+  // Ajusta los parámetros en función del tamaño de la pantalla
+  const separation = windowWidth < 768 ? { siblings: 1.1, nonSiblings: 1.4 } : { siblings: 1.3, nonSiblings: 1.6 };
+  const scaleExtent = windowWidth < 768 ? { min: 0.5, max: 0.7 } : { min: 0.5, max: 0.8 };
+
   return (
     <section className="organigrama" id="organigrama">
-      <h2 className="heading">Organigrama</h2>
+      
       <div className="organigrama-container">
         <Tree
           data={jerarquiaEmpleados}
           orientation="vertical"
           collapsible={true}
-          separation={{
-            siblings: 2,
-            nonSiblings: 2,
-          }}
+          separation={separation}
+          translate={{ x: translateX, y: translateY }}
+          scaleExtent={scaleExtent}
+          initialDepth={2}
         />
       </div>
     </section>
   );
 }
 
+function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isRegisterModalOpen, setRegisterModalOpen] = useState(false);
+
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+  };
+
+  const handlePasswordChange = (e) => {
+    setPassword(e.target.value);
+  };
+
+  const toggleShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Aquí puedes agregar la lógica para manejar el inicio de sesión, como enviar los datos al servidor.
+  };
+
+  return (
+    <div className="login-container">
+      <h2>Log-in</h2>
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label htmlFor="email">Correo electrónico</label>
+          <input
+            type="email"
+            id="email"
+            value={email}
+            onChange={handleEmailChange}
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="password">Contraseña</label>
+          <div className="password-input">
+            <input
+              type={showPassword ? "text" : "password"}
+              id="password"
+              value={password}
+              onChange={handlePasswordChange}
+            />
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={toggleShowPassword}
+            >
+              {showPassword ? (
+                <i className="fa fa-eye-slash"></i>
+              ) : (
+                <i className="fa fa-eye"></i>
+              )}
+            </button>
+          </div>
+        </div>
+        <button
+          type="submit"
+          className="btn-direction"
+        >
+          Iniciar sesión
+        </button>
+        <a
+          href="#"
+          onClick={() => setRegisterModalOpen(true)}
+          className="btn-direction" // Aplicamos la misma clase de estilo que el botón
+        >
+          Registrarse
+        </a>
+      </form>
+
+      {isRegisterModalOpen && (
+        <div className="modal-floating">
+          <div className="modal-header">
+            <h2>Registros</h2>
+          </div>
+          <div className="modal-body">
+            {/* Contenido del registro de usuario */}
+            {/* Puedes agregar campos como nombre de usuario, contraseña, confirmación de contraseña, etc. */}
+          </div>
+          <button onClick={() => setRegisterModalOpen(false)}>Cerrar</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+
 function Empleados() {
+  const { openFilePicker, filesContent, loading, clear } = useFilePicker({
+    readAs: "DataURL",
+    accept: 'image/*',
+    validators: [
+      new FileAmountLimitValidator({ max: 1 }),
+      //new FileSizeValidator({ maxFileSize: 50 * 1024 * 1024 /* 50 MB */ }),
+    ],
+  });
+  const [imgActual,setImgActual] = useState([]);
+  const [modalTitulo,setModalTitulo] = useState("")
   const [empleados, setEmpleados] = useState([]); // Estado para almacenar la lista de empleados
   const [globalFilter, setglobalFilter] = useState(''); // Estado para almacenar el filro pro nombres
   const [globalpage, setglobalpage] = useState(0);
   
 
   useEffect (()=>{ 
+    cargarEmpleadosBD();
+  },[ ]);
+
+  useEffect(() => {
+    
+    setImgActual(filesContent);
+  }, [filesContent]);
+  
+
+  const cargarEmpleadosBD = ()=>{
     fetch ('http://localhost:3000/empleados',{      
       method:'get',
       headers:{
@@ -237,7 +377,7 @@ function Empleados() {
     }).then ((json)=>{
 setEmpleados(json)
     })
-  },[ ]);
+  }
 
   const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState(null); // Estado para almacenar el empleado seleccionado
   const [modalAgregar, setModalAgregar] = useState(false); // Estado para mostrar/ocultar el modal de agregar empleado
@@ -247,12 +387,32 @@ setEmpleados(json)
     ApelPaterno: '',
     ApelMaterno: '',
     FecNacimiento: null, // Usa null en lugar de una cadena para el campo de fecha
-    
+    Fotografia:null,
   });
 
   // Función para abrir el modal de agregar empleado
   const abrirModalAgregar = () => {
+    setImgActual([]);
+    setModalTitulo("Agregar Empleado")
     setModalAgregar(true);
+  };
+
+  const abrirModalEditar = (empleado,id) => {
+    setModalTitulo("Editar Empleado")
+    setModalAgregar(true);
+    const editEmp = {
+      id: id,
+      Nombre: empleado.Nombre,
+      ApelPaterno: empleado.ApelPaterno,
+      ApelMaterno: empleado.ApelMaterno,
+      FecNacimiento: empleado.FecNacimiento, // Usa null en lugar de una cadena para el campo de fecha
+    }
+    if (empleado.hasOwnProperty('Fotografia'))
+      editEmp["Fotografia"] = empleado.Fotografia;
+
+    setImgActual([{"name":"foto","content":empleado.Fotografia}])
+    setFormEmpleado(editEmp);
+
   };
 
   // Función para cerrar el modal de agregar empleado
@@ -264,21 +424,71 @@ setEmpleados(json)
       ApelPaterno: '',
       ApelMaterno: '',
       FecNacimiento: '',
-      
+      Fotografia:null,
     });
+    
   };
+
+// Función para editar un empleado a la lista
+const editarEmpleado = () => {
+  // Agregar lógica para editar un empleado aquí
+
+  var foto=null;
+  console.log("formEmpleado")
+  console.log(formEmpleado)
+  const nuevoEmpleado = {
+    
+    Nombre: formEmpleado.Nombre,
+    ApelPaterno: formEmpleado.ApelPaterno,
+    ApelMaterno: formEmpleado.ApelMaterno,
+    FecNacimiento: formEmpleado.FecNacimiento,
+  };
+  
+  if (imgActual.length>0)
+    nuevoEmpleado["Fotografia"] =imgActual[0].content;
+
+  
+  console.log(nuevoEmpleado)
+  fetch ('http://localhost:3000/empleados/'+formEmpleado.id,{      
+    method:'put',
+    headers:{
+      'Content-type':'application/json', 
+      'Accept':'application/json',
+      'Access-Control-Allow-Origin': '*'
+    },
+    body:JSON.stringify(nuevoEmpleado)
+  })
+  .then ((response)=>{
+    return response.json()
+  }).then ((json)=>{
+    alert(json.message)
+    cargarEmpleadosBD();
+    cerrarModalAgregar();
+    clear();
+  })
+  
+  
+};
+
 
   // Función para agregar un empleado a la lista
   const agregarEmpleado = () => {
     // Agregar lógica para agregar un empleado aquí
+    
+    var foto=null;
+    
     const nuevoEmpleado = {
       
       Nombre: formEmpleado.Nombre,
       ApelPaterno: formEmpleado.ApelPaterno,
       ApelMaterno: formEmpleado.ApelMaterno,
       FecNacimiento: formEmpleado.FecNacimiento,
-      
     };
+    
+    if (filesContent.length>0)
+      nuevoEmpleado["Fotografia"] =filesContent[0].content;
+
+    
     console.log(nuevoEmpleado)
     fetch ('http://localhost:3000/empleados',{      
       method:'post',
@@ -292,14 +502,16 @@ setEmpleados(json)
     .then ((response)=>{
       return response.json()
     }).then ((json)=>{
-
+      cargarEmpleadosBD();
+      cerrarModalAgregar();
+      clear();
     })
-    setEmpleados([...empleados, nuevoEmpleado]);
-    cerrarModalAgregar();
+    //setEmpleados([...empleados, nuevoEmpleado]);
+    
   };
 
   const handleFechaNacimientoChange = (date) => {
-    setFormEmpleado({ ...formEmpleado, FecNacimiento: date });
+    setFormEmpleado({ ...formEmpleado, FecNacimiento: date.target.value });
   };
 
   //Metodo de filtrado
@@ -335,13 +547,32 @@ setEmpleados(json)
   }
   
 
-  const handleEditarEmpleado = (empleado) => {
+  const handleEditarEmpleado = (empleado,id) => {
     // Agrega lógica para editar el empleado aquí
+    abrirModalEditar(empleado,id);
+    
   };
   
   // Función para eliminar un empleado
   const handleEliminarEmpleado = (id) => {
     // Agrega lógica para eliminar el empleado aquí
+    fetch ('http://localhost:3000/empleados/'+id,{      
+      method:'delete',
+      headers:{
+        'Content-type':'application/json', 
+        'Accept':'application/json',
+        'Access-Control-Allow-Origin': '*'
+      },
+      
+    })
+    .then ((response)=>{
+      return response.json()
+    }).then ((json)=>{
+      alert(json.message);
+      cargarEmpleadosBD();
+    })
+
+
   };
   // Más funciones CRUD para editar y eliminar empleados
 
@@ -363,7 +594,7 @@ setEmpleados(json)
         <table className="table" >
           <thead>
             <tr>
-              <th>ID</th>
+              
               <th>Nombre</th>
               <th>Apellido Paterno</th>
               <th>Apellido Materno</th>
@@ -375,23 +606,25 @@ setEmpleados(json)
           <tbody>
             {resultado.map((empleado) => (
               <tr key={empleado.id}>
-                <td>{empleado.id}</td>
+                <td style={{display:'none'}}>{empleado._id}</td>
                 <td>{empleado.Nombre}</td>
                 <td>{empleado.ApelPaterno}</td>
                 <td>{empleado.ApelMaterno}</td>
+                <td>{empleado.FecNacimiento}</td>
                 
-                <td>{empleado.fotografia}</td>
+                <td>{(empleado.Fotografia)?<img style={{ width: 200, height: 200 }} alt="" src={empleado.Fotografia}></img>:<></>}
+                </td>
                 <td>
                   <button
                     className="btn btn-primary"
-                    onClick={() => handleEditarEmpleado(empleado)}
+                    onClick={() => handleEditarEmpleado(empleado,empleado._id)}
                   >
                     Editar
                   </button>
                   {"   "}
                   <button
                     className="btn btn-danger"
-                    onClick={() => handleEliminarEmpleado(empleado.id)}
+                    onClick={() => handleEliminarEmpleado(empleado._id)}
                   >
                     Eliminar
                   </button>
@@ -418,7 +651,7 @@ setEmpleados(json)
 
       {/* Modal para agregar empleado */}
       <Modal isOpen={modalAgregar} toggle={cerrarModalAgregar} className="modal-floating">
-        <ModalHeader>Agregar Empleado</ModalHeader>
+        <ModalHeader>{modalTitulo}</ModalHeader>
         <ModalBody>
           <div className="form-group">
             <div className="form-item">
@@ -467,21 +700,37 @@ setEmpleados(json)
             </div>
             <div className="form-item">
               <label htmlFor="fechaNac">Fecha de Nacimiento:</label>
-              <DatePicker
-                selected={formEmpleado.FecNacimiento}
+              <input className='datepicker form-control'
+                type='date'
+                value={formEmpleado.FecNacimiento}
                 onChange={handleFechaNacimientoChange}
-                dateFormat="dd/MM/yyyy"
-                className="form-control"
               />
+            </div>
+            <div className="form-item">
+              <label htmlFor="Fotografia">Fotografía:</label>
+              <button onClick={() => openFilePicker()}>Subir archivo...</button>
+              {(imgActual).map((file, index) => {
+                console.log("OBJETO IMG");
+                console.log(file);
+                
+                return (
+                <div style={{textAlign: "center"}}>
+                  <h2>{file.name}</h2>
+                  <img style={{ width: 200, height: 200 }} alt={file.name} src={file.content}></img>
+                  <br />
+                </div>
+              )}
+              )}
             </div>
             {/* Agregar más campos del formulario según sea necesario */}
           </div>
         </ModalBody>
         <ModalFooter>
-          <button className="btn btn-success" onClick={agregarEmpleado}>
+          <button className="btn btn-success" onClick={()=>{(modalTitulo=="Agregar Empleado")?agregarEmpleado():editarEmpleado()}}>
             Guardar
           </button>
           <button className="btn btn-danger" onClick={cerrarModalAgregar}>
+            
             Cancelar
           </button>
         </ModalFooter>
