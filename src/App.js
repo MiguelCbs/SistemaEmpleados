@@ -2,18 +2,16 @@ import React, { useEffect, useState } from 'react';
 import './styles.css';
 import { Route, Link, Routes } from 'react-router-dom';
 import Tree from 'react-d3-tree';
-import { Modal, ModalHeader, ModalBody, ModalFooter, Navbar } from 'reactstrap';
+import { Modal, ModalHeader, ModalBody, ModalFooter, Navbar, Table } from 'reactstrap';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { useFilePicker } from 'use-file-picker';
+import { useParams } from 'react-router-dom';
 import { FileAmountLimitValidator, FileSizeValidator, ImageDimensionsValidator } from 'use-file-picker/validators';
-
 
 function App() {
   const [currentRotation, setCurrentRotation] = useState(0);
-
-  
-
+ 
   const images = [
     '/static/img/img1.jpg',
     '/static/img/img2.jpg',
@@ -158,7 +156,7 @@ function App() {
         <Route path="/Organigrama" element={<Organigrama jerarquiaEmpleados={jerarquiaEmpleados} />} />
         <Route path="/Empleados" element={<Empleados />} />
         <Route path="/Login" element={<Login />} />
-        <Route path="/Personal" element={<Personal />} /> {/* Agrega la ruta para "Personal" */}
+        <Route path="/Personal/:id" element={<Personal />} /> { }
       </Routes>
 
       <footer className="footer">
@@ -177,12 +175,32 @@ function App() {
 }
 
 function Home({ currentRotation, handlePrevClick, handleNextClick, images }) {
+  const [empleados, setEmpleados] = useState([]); 
+
+  const cargarEmpleadosBD = ()=>{
+    fetch ('http://localhost:3000/empleados',{      
+      method:'get',
+      headers:{
+      'Access-Control-Allow-Origin': '*'
+      }
+    })
+    .then ((response)=>{
+      return response.json()
+    }).then ((json)=>{
+setEmpleados(json)
+    })
+  }
+
+  useEffect (()=>{ 
+    cargarEmpleadosBD();
+  },[ ]);
+  
   return (
     <section className="home" id="home">
       <div className="home-content">
         <div className="gallery-container">
           <div className="box">
-            {images.map((image, index) => (
+            {empleados.map((empleado, index) => (
               <div
                 className={`card ${index === 0 ? 'active' : ''}`}
                 key={index}
@@ -190,10 +208,10 @@ function Home({ currentRotation, handlePrevClick, handleNextClick, images }) {
                   transform: `rotateY(${currentRotation + (360 / images.length) * index}deg) translateZ(300px)`,
                 }}
               >
-                <img src={image} alt={`Image ${index + 1}`} />
-                <Link to="/Personal" className="btn-direction">
-                  Ver
-                </Link>
+                <img src={empleado.Fotografia} alt={`Image ${index + 1}`} />
+                <Link to={`/Personal/${empleado._id}`} className="btn-direction">
+  Ver
+</Link>
               </div>
             ))}
           </div>
@@ -517,33 +535,33 @@ const editarEmpleado = () => {
   //Metodo de filtrado
   let resultado = [];
   if (!globalFilter) {
-    resultado = empleados.slice(globalpage, globalpage + 3);
+    resultado = empleados.slice(globalpage, globalpage + 5);
 
   } else {
       resultado = empleados.filter((dato) =>
       dato.Nombre.toLowerCase().includes(globalFilter.toLowerCase())
-    ).slice(globalpage , globalpage  + 3);
+    ).slice(globalpage , globalpage  + 5);
   }
 
   //Siguiente pagina
   const NextPage = () => {
     if (!globalFilter) {
-      if (empleados.length > globalpage + 3) {
-        setglobalpage(globalpage + 3);
+      if (empleados.length > globalpage + 5) {
+        setglobalpage(globalpage + 5);
       }
     } else {
       const empleadosFiltrados = empleados.filter((dato) =>
         dato.Nombre.toLowerCase().includes(globalFilter.toLowerCase())
       );
-      if (empleadosFiltrados.length > globalpage + 3) {
-        setglobalpage(globalpage + 3);
+      if (empleadosFiltrados.length > globalpage + 5) {
+        setglobalpage(globalpage + 5);
       }
     }
   };
 
   const PrevPage = () =>{
     if(globalpage > 0)
-    setglobalpage(globalpage - 3 );
+    setglobalpage(globalpage - 5 );
   }
   
 
@@ -583,18 +601,17 @@ const editarEmpleado = () => {
           Agregar Empleado
         </button>
         <div>
-        <input
-        type='text'
-        className="inputEmpleados"
-        placeholder='Buscar...'
-        value={globalFilter}
-        onChange={e => setglobalFilter(e.target.value)}
-        />
+          <input
+            type="text"
+            className="inputEmpleados"
+            placeholder="Buscar..."
+            value={globalFilter}
+            onChange={(e) => setglobalFilter(e.target.value)}
+          />
         </div>
-        <table className="table" >
+        <table className="table">
           <thead>
             <tr>
-              
               <th>Nombre</th>
               <th>Apellido Paterno</th>
               <th>Apellido Materno</th>
@@ -606,18 +623,27 @@ const editarEmpleado = () => {
           <tbody>
             {resultado.map((empleado) => (
               <tr key={empleado.id}>
-                <td style={{display:'none'}}>{empleado._id}</td>
+                <td style={{ display: "none" }}>{empleado._id}</td>
                 <td>{empleado.Nombre}</td>
                 <td>{empleado.ApelPaterno}</td>
                 <td>{empleado.ApelMaterno}</td>
                 <td>{empleado.FecNacimiento}</td>
-                
-                <td>{(empleado.Fotografia)?<img style={{ width: 200, height: 200 }} alt="" src={empleado.Fotografia}></img>:<></>}
+
+                <td>
+                  {empleado.Fotografia ? (
+                    <img
+                      style={{ width: 200, height: 200 }}
+                      alt=""
+                      src={empleado.Fotografia}
+                    ></img>
+                  ) : (
+                    <></>
+                  )}
                 </td>
                 <td>
                   <button
                     className="btn btn-primary"
-                    onClick={() => handleEditarEmpleado(empleado,empleado._id)}
+                    onClick={() => handleEditarEmpleado(empleado, empleado._id)}
                   >
                     Editar
                   </button>
@@ -633,120 +659,194 @@ const editarEmpleado = () => {
             ))}
           </tbody>
         </table>
-        <div className='mt-4 flex items-center justify-between '>
-          <div className='flex items-center gap-2'>
-            <button className='btn'
-            onClick={PrevPage}
-            >
-              {'Anterior'}
+        <div className="mt-4 flex items-center justify-between ">
+          <div className="flex items-center gap-2">
+            <button className="btn" onClick={PrevPage}>
+              {"Anterior"}
             </button>
-            <button className='btn'
-            onClick={NextPage}
-            >
-              {'Siguiente'}
+            <button className="btn" onClick={NextPage}>
+              {"Siguiente"}
             </button>
           </div>
         </div>
       </div>
 
       {/* Modal para agregar empleado */}
-      <Modal isOpen={modalAgregar} toggle={cerrarModalAgregar} className="modal-floating">
+      <Modal
+        isOpen={modalAgregar}
+        toggle={cerrarModalAgregar}
+        className="modal-floating"
+      >
         <ModalHeader>{modalTitulo}</ModalHeader>
         <ModalBody>
-          <div className="form-group">
-            <div className="form-item">
-              <label htmlFor="id">ID:</label>
-              <input
-                className="form-control"
-                type="text"
-                name="id"
-                id="id"
-                value={formEmpleado.id}
-                onChange={(e) => setFormEmpleado({ ...formEmpleado, id: e.target.value })}
-              />
+          <Table className="form-tabla">
+            <div className="form-group">
+              <tr>
+                <td>
+                  <div className="form-item">
+                    <label htmlFor="nombre">Nombre:</label>
+                    <input
+                      className="form-control"
+                      type="text"
+                      name="nombre"
+                      id="nombre"
+                      value={formEmpleado.Nombre}
+                      onChange={(e) =>
+                        setFormEmpleado({
+                          ...formEmpleado,
+                          Nombre: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                </td>
+                <td>
+                  <div className="form-item">
+                    <label htmlFor="ApelPaterno">Apellido Paterno:</label>
+                    <input
+                      className="form-control"
+                      type="text"
+                      name="ApelPaterno"
+                      id="ApelPaterno"
+                      value={formEmpleado.ApelPaterno}
+                      onChange={(e) =>
+                        setFormEmpleado({
+                          ...formEmpleado,
+                          ApelPaterno: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div className="form-item">
+                    <label htmlFor="fechaNac">Fecha de Nacimiento:</label>
+                    <input
+                      className="datepicker form-control"
+                      type="date"
+                      value={formEmpleado.FecNacimiento}
+                      onChange={handleFechaNacimientoChange}
+                    />
+                  </div>
+                </td>
+                <td>
+                  <div className="form-item">
+                    <label htmlFor="ApelMaterno">Apellido Materno:</label>
+                    <input
+                      className="form-control"
+                      type="text"
+                      name="ApelMaterno"
+                      id="ApelMaterno"
+                      value={formEmpleado.ApelMaterno}
+                      onChange={(e) =>
+                        setFormEmpleado({
+                          ...formEmpleado,
+                          ApelMaterno: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style={{ width: "600px"}}>
+                  <div className="form-item foto" style={{ textAlign: "center" }}>
+                    <label htmlFor="Fotografia" style={{display: 'block'}}>Fotografía:</label>
+                    <button onClick={() => openFilePicker()}>
+                      Subir archivo...
+                    </button>
+                    {imgActual.map((file, index) => {
+                      console.log("OBJETO IMG");
+                      console.log(file);
+
+                      return (
+                        <div style={{ textAlign: "center" }}>
+                          <img
+                            style={{ width: 200, height: 200, marginTop: 10 }}
+                            alt={file.name}
+                            src={file.content}
+                          ></img>
+                          <br />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </td>
+              </tr>
             </div>
-            <div className="form-item">
-              <label htmlFor="nombre">Nombre:</label>
-              <input
-                className="form-control"
-                type="text"
-                name="nombre"
-                id="nombre"
-                value={formEmpleado.Nombre}
-                onChange={(e) => setFormEmpleado({ ...formEmpleado, Nombre: e.target.value })}
-              />
-            </div>
-            <div className="form-item">
-              <label htmlFor="ApelPaterno">Apellido Paterno:</label>
-              <input
-                className="form-control"
-                type="text"
-                name="ApelPaterno"
-                id="ApelPaterno"
-                value={formEmpleado.ApelPaterno}
-                onChange={(e) => setFormEmpleado({ ...formEmpleado, ApelPaterno: e.target.value })}
-              />
-            </div>
-            <div className="form-item">
-              <label htmlFor="ApelMaterno">Apellido Materno:</label>
-              <input
-                className="form-control"
-                type="text"
-                name="ApelMaterno"
-                id="ApelMaterno"
-                value={formEmpleado.ApelMaterno}
-                onChange={(e) => setFormEmpleado({ ...formEmpleado, ApelMaterno: e.target.value })}
-              />
-            </div>
-            <div className="form-item">
-              <label htmlFor="fechaNac">Fecha de Nacimiento:</label>
-              <input className='datepicker form-control'
-                type='date'
-                value={formEmpleado.FecNacimiento}
-                onChange={handleFechaNacimientoChange}
-              />
-            </div>
-            <div className="form-item">
-              <label htmlFor="Fotografia">Fotografía:</label>
-              <button onClick={() => openFilePicker()}>Subir archivo...</button>
-              {(imgActual).map((file, index) => {
-                console.log("OBJETO IMG");
-                console.log(file);
-                
-                return (
-                <div style={{textAlign: "center"}}>
-                  <h2>{file.name}</h2>
-                  <img style={{ width: 200, height: 200 }} alt={file.name} src={file.content}></img>
-                  <br />
-                </div>
-              )}
-              )}
-            </div>
-            {/* Agregar más campos del formulario según sea necesario */}
-          </div>
+          </Table>
         </ModalBody>
         <ModalFooter>
-          <button className="btn btn-success" onClick={()=>{(modalTitulo=="Agregar Empleado")?agregarEmpleado():editarEmpleado()}}>
-            Guardar
-          </button>
-          <button className="btn btn-danger" onClick={cerrarModalAgregar}>
-            
-            Cancelar
-          </button>
+          <div style={{ textAlign: "center" }}>
+            {" "}
+            {/* Contenedor para centrar los botones */}
+            <button
+              className="btn btn-success"
+              onClick={() =>
+                modalTitulo === "Agregar Empleado"
+                  ? agregarEmpleado()
+                  : editarEmpleado()
+              }
+            >
+              Guardar
+            </button>
+            <button className="btn btn-danger" onClick={cerrarModalAgregar}>
+              Cancelar
+            </button>
+          </div>
         </ModalFooter>
       </Modal>
     </section>
-
   );
 }
 
 function Personal() {
+    
+  const { id } = useParams();
+const [empleados, setEmpleados] = useState([]);
+const [datosCargados, setDatosCargados] = useState(false);
+
+const cargarEmpleadosBD = () => {
+  fetch('http://localhost:3000/empleados', {      
+    method: 'get',
+    headers: {
+      'Access-Control-Allow-Origin': '*'
+    }
+  })
+    .then((response) => response.json())
+    .then((json) => {
+      setEmpleados(json);
+      setDatosCargados(true); // Marcar que los datos se han cargado
+    });
+}
+
+useEffect(() => { 
+  cargarEmpleadosBD();
+}, []);
+
+if (!datosCargados) {
+  // Aquí puedes mostrar un mensaje de carga o algún indicador de carga
+  return  <div className='cargando'></div>;
+ 
+}
+
+const empleadoEncontrado = empleados.find((empleado) => empleado._id === id.trim());
+
+if (empleadoEncontrado) {
+  console.log('Empleado encontrado:', empleadoEncontrado);
+} else {
+  console.log(id);
+}
+
+// Resto de tu código para mostrar el empleado
+
   return (
     <div className="Personal">
       
       <div className="personal-content">
         <div className="section">
-          
           <section class="about" id="about">
       <h2 class="heading">Sobre <span>Mi</span></h2>
 
@@ -756,7 +856,7 @@ function Personal() {
       </div>
 
       <div class="about-content">
-        <h3>-Nombre-</h3>
+        <h3>{empleadoEncontrado.Nombre}</h3>
         <p>
           Lorem ipsum dolor sit amet consectetur adipisicing elit. Sunt deserunt
           qui atque, quos eos tempore? Culpa officia dicta, illo, sit dolorum

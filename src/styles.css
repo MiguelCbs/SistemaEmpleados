@@ -1022,7 +1022,7 @@ input[type='number']::-webkit-outer-spin-button {
   border: 1px solid #02a2e7;
   border-radius: 10px;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-  width: 400px; 
+  width: 800px; 
   justify-content: space-between;
 }
 
@@ -1287,13 +1287,12 @@ input[type='number']::-webkit-outer-spin-button {
   max-width: 30%;
 }
 
-.form-item {
-  margin: 10px 0;
-}
+
+/*Parte de formulario de agregar*/
 
 .form-item h2{
-  margin: 10px;
-  top: auto;
+  margin-top: 1px;
+  margin-bottom: 3px;
 }
 .form-item label{
   bottom: 10px;
@@ -1301,22 +1300,58 @@ input[type='number']::-webkit-outer-spin-button {
 }
 
 .form-item button {
-  margin-top: 5px;
   position: relative;
   display: inline-flex;
   justify-content: center;
   align-items: center;
   width: 30rem;
-  height: 10%;
+  height: 5%;
   background: var(--main-color);
   border: 0.2rem solid var(--main-color);
   border-radius: 0.8rem;
-  font-size: 1.8rem;
+  font-size: 1.7rem;
   font-weight: 600;
   letter-spacing: 0.1rem;
   color: var(--bg-color);
   z-index: 1;
   overflow: hidden;
   transition: 0.5s;
-  margin-left: 0;
+  margin-left: 19px;
 }
+
+
+.form-item{
+  width: 300px;
+  align-items: center;
+}
+
+.form-tabla {
+  border-collapse: collapse;
+  border: none;
+  width: 50%; 
+  margin: 0 auto; 
+}
+
+.form-tabla th, .form-tabla td {
+  border: none;
+  padding: 8px;
+  text-align: center;
+}
+.foto.form-item {
+  text-align: center;
+  width: 600px;
+}
+
+/*Pantalla de carga*/
+
+.cargando{
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 3px solid white;
+  border-top-color: transparent;
+  animation: spin 1.2s
+   linear infinite;
+
+}
+
