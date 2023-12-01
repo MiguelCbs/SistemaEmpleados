@@ -2,14 +2,9 @@ import React, { useEffect, useState } from "react";
 import "./styles.css";
 import { Route, Link, Routes } from "react-router-dom";
 import Tree from "react-d3-tree";
-import {
-  Modal,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  Navbar,
-  Table,
-} from "reactstrap";
+import { CiFacebook, CiLinkedin, CiYoutube } from "react-icons/ci";
+import { FaInstagram, FaTiktok } from "react-icons/fa";
+import { Modal, ModalHeader, ModalBody, ModalFooter, Table } from "reactstrap";
 import "react-datepicker/dist/react-datepicker.css";
 import { useFilePicker } from "use-file-picker";
 import { useParams } from "react-router-dom";
@@ -855,8 +850,24 @@ function Personal() {
   const [isEditing, setIsEditing] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [EducacionCargada, setEducacionCargada] = useState(false);
+  const [redesSocialesCargadas, setRedesSocialesCargadas] = useState(false);
 
-  /*Usestate para actualizar toda la informacion*/
+  /*Usestate para redes sociales*/
+  const [URLRedSocial, SetURLRedSocial] = useState(
+    "Agrega la url de la red social"
+  );
+  const [NombreRedSocial, setNombreRedSocial] = useState(
+    "Agrega el nombre de tu Usuario"
+  );
+  const [redesSociales, setRedesSociales] = useState([
+    {
+      redSocialSeleccionada: "",
+      URLRedSocial: "",
+      NombreRedSocial: "",
+    },
+  ]);
+  const [redSocialSeleccionada, setRedSocialSeleccionada] = useState("");
+  /*Usestate para actualizar toda la informacion de educacion*/
 
   const [descripcion, setDescripcion] = useState(
     "Por favor, edita tu descripción. En la parte inferior, encontrarás un botón que te permite editar todos los formularios. Para modificar cualquier sección, simplemente haz clic en el botón correspondiente y podrás actualizar la información según tus necesidades."
@@ -882,16 +893,26 @@ function Personal() {
     { skillName: "Web Design", porcentaje: 0 },
   ]);
 
+  /*const [archivoPDF, setArchivoPDF] = useState(null);*/
 
   /*Usestate que carga los datos del get*/
   const [Educacion, setEducacion] = useState({});
+
+  /*Cargar los datos para Redes sociales*/
+  const RedSocial = [
+    { label: "Facebook", value: <CiFacebook /> },
+    { label: "Instagram", value: <FaInstagram /> },
+    { label: "Linkedin", value: <CiLinkedin /> },
+    { label: "Youtube", value: <CiYoutube /> },
+    { label: "tiktok", value: <FaTiktok /> },
+  ];
 
   /*Carga de datos antes de que inicie la pagina*/
   useEffect(() => {
     cargarEmpleadosBD();
     cargarEducacionPorEmpleado(id.trim());
+    cargarRedesSocialesPorEmpleado(id.trim());
   }, [id]);
-
 
   //Cargar los datos en base el ID de empleado con UsePrams
   const cargarEmpleadosBD = () => {
@@ -907,7 +928,6 @@ function Personal() {
         setDatosCargados(true); // Marcar que los datos se han cargado
       });
   };
-
 
   //Get y conexiones de los datos con los Usestate
   const cargarEducacionPorEmpleado = (empleadoId) => {
@@ -1007,6 +1027,33 @@ function Personal() {
       });
   };
 
+  const cargarRedesSocialesPorEmpleado = (empleadoId) => {
+    fetch(`http://localhost:3000/redessociales/empleado/${empleadoId}`, {
+      method: 'GET',
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(
+            `Error al cargar datos de redes sociales: ${response.status}`
+          );
+        }
+        return response.json();
+      })
+      .then((json) => {
+        console.log('Respuesta completa del servidor (Redes Sociales):', json);
+
+        setRedesSociales(json);
+        setRedesSocialesCargadas(true);
+      })
+      .catch((error) => {
+        console.error('Error al cargar redes sociales:', error);
+      });
+  };
+
+  
 
   //Cargar los datos antes de iniciar la pagina
   if (setEducacionCargada) {
@@ -1035,7 +1082,7 @@ function Personal() {
 
   /*Funcion para añadir eduacion, experiencia y habilidades y funcion para eliminarlas*/
 
-  //Funcion para Educacion 
+  //Funcion para Educacion
   const handleAddEducation = () => {
     const newEducationItem = {
       year: "2021 - 2022",
@@ -1051,7 +1098,7 @@ function Personal() {
     setEducationItems(updatedEducationItems);
   };
 
-//Funcion para Experiencia 
+  //Funcion para Experiencia
   const handleAddExperience = () => {
     const newExperienceItem = {
       year: "2021 - 2022",
@@ -1068,7 +1115,7 @@ function Personal() {
     SetExperienciaItems(updatedExperienceItems);
   };
 
-//Funcion para skill 
+  //Funcion para skill
   const handleRemoveSkill = () => {
     const updatedHabilidades = [...habilidades];
     updatedHabilidades.pop(); // Elimina la última habilidad
@@ -1087,8 +1134,8 @@ function Personal() {
   const empleadoEncontrado = empleados.find(
     (empleado) => empleado._id === id.trim()
   );
-  
-/*Boton de editar, este permite que el usuario edite su informacion*/ 
+
+  /*Boton de editar, este permite que el usuario edite su informacion*/
   const handleEditClick = () => {
     setIsEditing(true);
     setIsCreating(false); // Al hacer clic en "Editar", no estás creando un elemento nuevo
@@ -1096,8 +1143,23 @@ function Personal() {
 
   /*Manda los datos al POST o PUT y tambien impide que el usuario siga editando*/
   const handleSaveClick = () => {
+    setRedesSociales([
+      ...redesSociales,
+      { redSocialSeleccionada, URLRedSocial, NombreRedSocial },
+    ]);
+    setRedSocialSeleccionada("");
+    SetURLRedSocial("");
+    setNombreRedSocial("");
     setIsEditing(false);
 
+    const datosRedesSociales = {
+      empleado_id: id.trim(),
+      RedesSociales: redesSociales.map((redSocial) => ({
+        redSocialSeleccionada: redSocial.redSocialSeleccionada,
+        URLRedSocial: redSocial.URLRedSocial,
+        NombreRedSocial: redSocial.NombreRedSocial,
+      })),
+    };
     // Obtén los datos de educación del estado
     const datosEducacion = {
       empleado_id: id.trim(),
@@ -1119,16 +1181,46 @@ function Personal() {
         })),
       },
     };
+    /*
+    const formData = new FormData();
+    formData.append('archivo', archivoPDF); // Agrega el archivo PDF al formulario
+  
+    // Agrega los datos de educación al formulario
+    formData.append('datos_educacion', JSON.stringify(datosEducacion));
+  */
 
+    console.log("Estos son las redes sociales:",datosRedesSociales);
+
+    console.log(datosEducacion);
     // Verifica si el empleado ya tiene una entrada en la base de datos
-    fetch(`http://localhost:3000/educacion/empleado/${id}`, {
-      method: "GET",
+    fetch("http://localhost:3000/redsocial", {
+      method: "POST",
       headers: {
-        "Access-Control-Allow-Origin": "*",
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify(datosRedesSociales), // Usar datosRedesSociales en lugar de datosEducacion
     })
-      .then((response) => {
-        if (response.ok) {
+      .then((responseRedesSociales) => {
+        if (!responseRedesSociales.ok) {
+          throw new Error(`Error al enviar datos de redes sociales: ${responseRedesSociales.status}`);
+        }
+        return responseRedesSociales.json();
+      })
+      .then((dataRedesSociales) => {
+        console.log('Respuesta del servidor (Redes Sociales):', dataRedesSociales);
+    
+        // Resto de tu lógica para manejar la respuesta del servidor...
+    
+        // Verifica si el empleado ya tiene una entrada en la base de datos
+        return fetch(`http://localhost:3000/educacion/empleado/${id}`, {
+          method: "GET",
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
+        });
+      })
+      .then((responseEducacion) => {
+        if (responseEducacion.ok) {
           // Si el empleado ya tiene una entrada, realiza una solicitud PUT
           return fetch(`http://localhost:3000/educacion/${id}`, {
             method: "PUT",
@@ -1148,21 +1240,32 @@ function Personal() {
           });
         }
       })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Respuesta del servidor:", data);
+      .then((responseEducacion) => responseEducacion.json())
+      .then((dataEducacion) => {
+        console.log("Respuesta del servidor (Educación):", dataEducacion);
       })
       .catch((error) => {
-        console.error("Error al enviar datos:", error);
+        console.error('Error en la solicitud POST (Redes Sociales o Educación):', error);
       });
+      
   };
+  
 
   /*Evento para establecer parrafos*/
 
   const handleInputChange = (event) => {
     setDescripcion(event.target.value);
   };
-
+  const handleAddSocial = () => {
+    setRedesSociales([
+      ...redesSociales,
+      {
+        redSocialSeleccionada: "",
+        URLRedSocial: "",
+        NombreRedSocial: "",
+      },
+    ]);
+  };
   /*Editar educacion, experiencia y habilidades*/
 
   const handleEditEducationYear = (event, index) => {
@@ -1188,7 +1291,6 @@ function Personal() {
     updatedExperienceItems[index].year = event.target.value;
     SetExperienciaItems(updatedExperienceItems);
   };
-
 
   const handleEditExperienceTitle = (event, index) => {
     const updatedItems = [...ExperienciaItems];
@@ -1260,12 +1362,14 @@ function Personal() {
               <div className="content">
                 <div className="year">
                   {isEditing ? (
-                 <input
-                 type="number"
-                 value={parseInt(item.year)}
-                 onChange={(event) => handleEditEducationYear(event, index)}
-                 className="EditarEducacion"
-               />               
+                    <input
+                      type="number"
+                      value={parseInt(item.year)}
+                      onChange={(event) =>
+                        handleEditEducationYear(event, index)
+                      }
+                      className="EditarEducacion"
+                    />
                   ) : (
                     <>
                       <i className="bx bxs-calendar"></i> {item.year}
@@ -1320,14 +1424,16 @@ function Personal() {
           {ExperienciaItems.map((item, index) => (
             <div key={index} className="education-content">
               <div className="content">
-              <div className="year">
+                <div className="year">
                   {isEditing ? (
-                 <input
-                 type="number"
-                 value={parseInt(item.year)}
-                 onChange={(event) => handleEditExperienceYear(event, index)}
-                 className="EditarEducacion"
-               />               
+                    <input
+                      type="number"
+                      value={parseInt(item.year)}
+                      onChange={(event) =>
+                        handleEditExperienceYear(event, index)
+                      }
+                      className="EditarEducacion"
+                    />
                   ) : (
                     <>
                       <i className="bx bxs-calendar"></i> {item.year}
@@ -1360,7 +1466,7 @@ function Personal() {
             </div>
           ))}
           {isEditing && (
-              <>
+            <>
               <button className="btn" onClick={handleAddExperience}>
                 Agregar Experiencia
               </button>
@@ -1377,80 +1483,71 @@ function Personal() {
   //Render de habilidades
   const renderSkillSection = () => {
     return (
-      <div className="skills-row">
-        <div className="skills-column">
-          <h3 className="title">Habilidades Profesionales</h3>
-
-          <div className="skills-box">
-            {habilidades.map((habilidad, index) => (
-              <div key={index} className="skills-content">
-                <div className="progress">
-                  {isEditing ? (
-                    <div className="edit-skill-name">
-                      <label htmlFor={`skillName${index}`}>Nombre:</label>
-                      <input
-                        type="text"
-                        id={`skillName${index}`}
-                        value={habilidad.skillName}
-                        onChange={(e) => handleEditSkillName(e, index)}
-                        className="EditarEducacion"
-                      />
-                      <span id={`skillSkill${index}`}>
-                        {habilidad.porcentaje}%
-                      </span>
-                      <div className="progress-bar-container">
-                        <div
-                          className="bar"
-                          style={{ width: `${habilidad.porcentaje}%` }}
-                        >
-                          <div className="bar-overlay"></div>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div>
-                      <h3>
-                        {habilidad.skillName}{" "}
-                        <span id={`skillSkill${index}`}>
-                          {habilidad.porcentaje}%
-                        </span>
-                      </h3>
-                      <div className="progress-bar-container">
-                        <div
-                          className="bar"
-                          style={{ width: `${habilidad.porcentaje}%` }}
-                        >
-                          <div className="bar-overlay"></div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+      <div className="skills-box">
+        {habilidades.map((habilidad, index) => (
+          <div key={index} className="skills-content">
+            <div className="progress">
+              {isEditing ? (
+                <div className="edit-skill-name">
+                  <label htmlFor={`skillName${index}`}>Nombre:</label>
                   <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={habilidad.porcentaje}
-                    className="skill-range"
-                    onChange={(e) => actualizarPorcentaje(e, index)}
-                    disabled={!isEditing}
-                    style={{ display: isEditing ? "block" : "none" }}
+                    type="text"
+                    id={`skillName${index}`}
+                    value={habilidad.skillName}
+                    onChange={(e) => handleEditSkillName(e, index)}
+                    className="EditarEducacion"
                   />
+                  <span id={`skillSkill${index}`}>{habilidad.porcentaje}%</span>
+                  <div className="progress-bar-container">
+                    <div
+                      className="bar"
+                      style={{ width: `${habilidad.porcentaje}%` }}
+                    >
+                      <div className="bar-overlay"></div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
-          {isEditing && (
-  <>
-    <button className="btn" onClick={handleAddSkill}>
-      Agregar Habilidad
-    </button>
-    <button className="btn" onClick={handleRemoveSkill}>
-      Eliminar Habilidad
-    </button>
-  </>
-)}
-
+              ) : (
+                <div>
+                  <h3>
+                    {habilidad.skillName}{" "}
+                    <span id={`skillSkill${index}`}>
+                      {habilidad.porcentaje}%
+                    </span>
+                  </h3>
+                  <div className="progress-bar-container">
+                    <div
+                      className="bar"
+                      style={{ width: `${habilidad.porcentaje}%` }}
+                    >
+                      <div className="bar-overlay"></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={habilidad.porcentaje}
+                className="skill-range"
+                onChange={(e) => actualizarPorcentaje(e, index)}
+                disabled={!isEditing}
+                style={{ display: isEditing ? "block" : "none" }}
+              />
+            </div>
           </div>
-        </div>
+        ))}
+        {isEditing && (
+          <>
+            <button className="btn" onClick={handleAddSkill}>
+              Agregar Habilidad
+            </button>
+            <button className="btn" onClick={handleRemoveSkill}>
+              Eliminar Habilidad
+            </button>
+          </>
+        )}
       </div>
     );
   };
@@ -1495,8 +1592,83 @@ function Personal() {
               </p>
 
               <p>
-                <div class="skills-row">{renderSkillSection()}</div>
+                <div class="skills-row">
+                  <h3 className="title">Habilidades Profesionales</h3>
+                  <div className="skills-column">{renderSkillSection()}</div>
+                </div>
               </p>
+
+              <div className="skills-row">
+                {isEditing ? (
+                  <div>
+                    {redesSociales.map((social, index) => (
+                      <div key={index}>
+                        <select
+                          value={social.redSocialSeleccionada}
+                          onChange={(e) => {
+                            const updatedRedesSociales = [...redesSociales];
+                            updatedRedesSociales[index].redSocialSeleccionada =
+                              e.target.value;
+                            setRedesSociales(updatedRedesSociales);
+                          }}
+                        >
+                          <option value="">Selecciona una red social</option>
+                          {RedSocial.map((option) => (
+                            <option key={option.label} value={option.label}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                        <TextareaAutosize
+                          value={social.URLRedSocial}
+                          onChange={(e) => {
+                            const updatedRedesSociales = [...redesSociales];
+                            updatedRedesSociales[index].URLRedSocial =
+                              e.target.value;
+                            setRedesSociales(updatedRedesSociales);
+                          }}
+                          className="EditarPersonal"
+                          placeholder="URL de la red social"
+                        />
+                        <TextareaAutosize
+                          value={social.NombreRedSocial}
+                          onChange={(e) => {
+                            const updatedRedesSociales = [...redesSociales];
+                            updatedRedesSociales[index].NombreRedSocial =
+                              e.target.value;
+                            setRedesSociales(updatedRedesSociales);
+                          }}
+                          className="EditarPersonal"
+                          placeholder="Nombre de usuario"
+                        />
+                      </div>
+                    ))}
+                    <button className="btn" onClick={handleAddSocial}>
+                      Agregar otra red social
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    {redesSociales.map((redSocial, index) => (
+                      <a key={index} href={redSocial.URLRedSocial}>
+                        <p>
+                          {redSocial.redSocialSeleccionada && (
+                            <>
+                              {RedSocial.find(
+                                (social) =>
+                                  social.label ===
+                                  redSocial.redSocialSeleccionada
+                              )?.value || "Icono no encontrado"}
+                              {redSocial.NombreRedSocial}
+                            </>
+                          )}
+                        </p>
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div>
                 {isEditing ? (
                   <button className="btn" onClick={handleSaveClick}>
