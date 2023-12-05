@@ -255,7 +255,8 @@ section {
 }
 
 
-.heading {
+.main-heading {
+  padding-top: 80px;
   font-size: 3rem;
   margin-bottom: 3rem;
   text-align: center;
@@ -267,8 +268,9 @@ span {
 
 
 .about-img {
+
   position: relative;
-  max-width: 20rem; 
+  max-width: 30rem; 
   width: auto;
   height: 30vh; 
   display: flex;
@@ -310,8 +312,25 @@ span {
 }
 
 
+
+.about {
+  background-color: #112e42;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 20px;
+  
+}
+
 .about-content {
   text-align: center;
+  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  justify-content: space-between;
+  padding: 15px;
+  
+  
 }
 
 .about-content h3 {
@@ -323,6 +342,34 @@ span {
   margin: 2rem 0 3rem;
 }
 
+.left-column {
+  flex: 1;
+  margin-right: 20px; 
+  
+  padding: 10px;
+}
+
+.description{
+  background-color: #081b29;
+  border-radius: 20px;
+  padding: 15px
+}
+
+.desc-heading {
+  font-size: 3rem;
+  margin-bottom: 3rem;
+  text-align: center;
+  color: #ffffff; 
+  margin-bottom: 10px;
+  margin-top: none;
+}
+
+.right-column {
+  flex: 1;
+  margin-left: 20px;
+  
+}
+
 .btn-box.btns {
   display: inline-block;
   width: 15rem;
@@ -332,13 +379,26 @@ span {
   background: var(--second-bg-color);
 }
 
+
 .education {
   display: flex;
-  justify-content: center;
-  align-items: center;
+  justify-content: space-around;
+  align-items: stretch;
   flex-direction: column;
   min-height: auto;
   padding-bottom: 5rem;
+  padding: 0%;
+  
+}
+
+.education h2 {
+  
+  font-size: 3rem;
+  margin-bottom: 3rem;
+  text-align: center;
+  color: #ffffff; 
+  margin-bottom: 20px;
+  margin-top: none;
 }
 
 .education .education-row {
@@ -349,6 +409,13 @@ span {
 
 .education-row .education-column {
   flex: 1 1 40rem;
+}
+
+.education-column{
+  padding-top: 10px;
+  background-color: #081b29;
+  border-radius: 20px;
+  padding: 15px;
 }
 
 .education-column .title {
@@ -425,12 +492,14 @@ span {
   padding-bottom: 7rem;
   background: var(--second-bg-color);
   margin: 0 0 5rem;
+  
 }
 
 .skills .skills-row {
   display: flex;
   flex-wrap: wrap;
   gap: 5rem;
+  
 }
 
 .skills-row .skills-column {
@@ -496,6 +565,13 @@ span {
   height: 100%;
   border-radius: 0.3rem;
   background: var(--main-color);
+}
+
+.skills-column{
+  padding-top: 10px;
+  background-color: #081b29;
+  border-radius: 20px;
+  padding: 15px;
 }
 
 .skills-column:nth-child(1) .skills-content .progress:nth-child(1) .bar span {
@@ -666,9 +742,14 @@ input[type='number']::-webkit-outer-spin-button {
 
 /* codigo - Carrusel */
 
+.home-content{
+  justify-content: center;
+  align-items: center;
+}
+
 .gallery-container {
   position: absolute;
-  bottom: 200px; /* Ajusta según tu preferencia */
+  bottom: 25rem;
   left: 0;
   right: 0;
   display: flex;

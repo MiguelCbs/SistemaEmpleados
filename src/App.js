@@ -853,12 +853,6 @@ function Personal() {
   const [redesSocialesCargadas, setRedesSocialesCargadas] = useState(false);
 
   /*Usestate para redes sociales*/
-  const [URLRedSocial, SetURLRedSocial] = useState(
-    "Agrega la url de la red social"
-  );
-  const [NombreRedSocial, setNombreRedSocial] = useState(
-    "Agrega el nombre de tu Usuario"
-  );
   const [redesSociales, setRedesSociales] = useState([
     {
       redSocialSeleccionada: "",
@@ -866,7 +860,6 @@ function Personal() {
       NombreRedSocial: "",
     },
   ]);
-  const [redSocialSeleccionada, setRedSocialSeleccionada] = useState("");
   /*Usestate para actualizar toda la informacion de educacion*/
 
   const [descripcion, setDescripcion] = useState(
@@ -899,6 +892,7 @@ function Personal() {
   const [Educacion, setEducacion] = useState({});
 
   /*Cargar los datos para Redes sociales*/
+  
   const RedSocial = [
     { label: "Facebook", value: <CiFacebook /> },
     { label: "Instagram", value: <FaInstagram /> },
@@ -907,12 +901,7 @@ function Personal() {
     { label: "tiktok", value: <FaTiktok /> },
   ];
 
-  /*Carga de datos antes de que inicie la pagina*/
-  useEffect(() => {
-    cargarEmpleadosBD();
-    cargarEducacionPorEmpleado(id.trim());
-    cargarRedesSocialesPorEmpleado(id.trim());
-  }, [id]);
+
 
   //Cargar los datos en base el ID de empleado con UsePrams
   const cargarEmpleadosBD = () => {
@@ -931,7 +920,7 @@ function Personal() {
 
   //Get y conexiones de los datos con los Usestate
   const cargarEducacionPorEmpleado = (empleadoId) => {
-    console.log("Empleado ID:", empleadoId);
+  
     fetch(`http://localhost:3000/educacion/empleado/${empleadoId}`, {
       method: "GET",
       headers: {
@@ -1028,32 +1017,47 @@ function Personal() {
   };
 
   const cargarRedesSocialesPorEmpleado = (empleadoId) => {
-    fetch(`http://localhost:3000/redessociales/empleado/${empleadoId}`, {
-      method: 'GET',
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-      },
-    })
+    fetch(`http://localhost:3000/redsocial/empleado/${empleadoId}`)
       .then((response) => {
         if (!response.ok) {
-          throw new Error(
-            `Error al cargar datos de redes sociales: ${response.status}`
-          );
+          throw new Error(`Error al cargar datos de redes sociales: ${response.status}`);
         }
         return response.json();
       })
       .then((json) => {
         console.log('Respuesta completa del servidor (Redes Sociales):', json);
-
-        setRedesSociales(json);
+  
+        if (!json || !json[0].RedesSociales) {
+          console.log("Los datos de redes sociales no están en el formato esperado o no se han cargado.");
+          return;
+        }
+  
+        const redesSocialesCopy = json[0].RedesSociales.map((item) => ({
+          redSocialSeleccionada: item.redSocialSeleccionada,
+          URLRedSocial: item.URLRedSocial,
+          NombreRedSocial: item.NombreRedSocial,
+        }));
+  
+        setRedesSociales(redesSocialesCopy); // Actualiza el estado con los datos mapeados
         setRedesSocialesCargadas(true);
+  
+        console.log("Datos de redes sociales mapeados a redesSociales:", redesSocialesCopy);
       })
       .catch((error) => {
         console.error('Error al cargar redes sociales:', error);
       });
   };
-
   
+  
+  
+  console.log("Las redes sociales cargadas son", redesSociales);
+  
+  /*Carga de datos antes de que inicie la pagina*/
+  useEffect(() => {
+    cargarEmpleadosBD();
+    cargarEducacionPorEmpleado(id.trim());
+    cargarRedesSocialesPorEmpleado(id.trim());
+  }, [id]);
 
   //Cargar los datos antes de iniciar la pagina
   if (setEducacionCargada) {
@@ -1140,16 +1144,10 @@ function Personal() {
     setIsEditing(true);
     setIsCreating(false); // Al hacer clic en "Editar", no estás creando un elemento nuevo
   };
+  
 
   /*Manda los datos al POST o PUT y tambien impide que el usuario siga editando*/
   const handleSaveClick = () => {
-    setRedesSociales([
-      ...redesSociales,
-      { redSocialSeleccionada, URLRedSocial, NombreRedSocial },
-    ]);
-    setRedSocialSeleccionada("");
-    SetURLRedSocial("");
-    setNombreRedSocial("");
     setIsEditing(false);
 
     const datosRedesSociales = {
@@ -1189,67 +1187,91 @@ function Personal() {
     formData.append('datos_educacion', JSON.stringify(datosEducacion));
   */
 
-    console.log("Estos son las redes sociales:",datosRedesSociales);
-
-    console.log(datosEducacion);
-    // Verifica si el empleado ya tiene una entrada en la base de datos
-    fetch("http://localhost:3000/redsocial", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(datosRedesSociales), // Usar datosRedesSociales en lugar de datosEducacion
-    })
-      .then((responseRedesSociales) => {
-        if (!responseRedesSociales.ok) {
-          throw new Error(`Error al enviar datos de redes sociales: ${responseRedesSociales.status}`);
-        }
-        return responseRedesSociales.json();
+    const handleRedesSociales = () => {
+      fetch(`http://localhost:3000/redsocial/empleado/${id}`, {
+        method: "GET",
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+        },
       })
-      .then((dataRedesSociales) => {
-        console.log('Respuesta del servidor (Redes Sociales):', dataRedesSociales);
-    
-        // Resto de tu lógica para manejar la respuesta del servidor...
-    
-        // Verifica si el empleado ya tiene una entrada en la base de datos
-        return fetch(`http://localhost:3000/educacion/empleado/${id}`, {
-          method: "GET",
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-          },
+        .then((response) => {
+          if (response.ok) {
+            // Si el empleado ya tiene una entrada, realiza una solicitud PUT
+            return fetch(`http://localhost:3000/redsocial/empleado/${id}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(datosRedesSociales),
+            });
+          } else {
+            // Si el empleado no tiene una entrada, realiza una solicitud POST
+            return fetch("http://localhost:3000/redsocial", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(datosRedesSociales),
+            });
+          }
+        })
+        .then((responseRedesSociales) => {
+          if (!responseRedesSociales.ok) {
+            throw new Error(`Error al enviar datos de redes sociales: ${responseRedesSociales.status}`);
+          }
+          return responseRedesSociales.json();
+        })
+        .then((dataRedesSociales) => {
+          console.log('Respuesta del servidor (Redes Sociales):', dataRedesSociales);
+          // Resto de tu lógica para manejar la respuesta del servidor...
+        })
+        .catch((error) => {
+          console.error('Error en la solicitud POST/PUT (Redes Sociales):', error);
         });
-      })
-      .then((responseEducacion) => {
-        if (responseEducacion.ok) {
-          // Si el empleado ya tiene una entrada, realiza una solicitud PUT
-          return fetch(`http://localhost:3000/educacion/${id}`, {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(datosEducacion),
-          });
-        } else {
-          // Si el empleado no tiene una entrada, realiza una solicitud POST
-          return fetch("http://localhost:3000/educacion", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(datosEducacion),
-          });
-        }
-      })
-      .then((responseEducacion) => responseEducacion.json())
-      .then((dataEducacion) => {
-        console.log("Respuesta del servidor (Educación):", dataEducacion);
-      })
-      .catch((error) => {
-        console.error('Error en la solicitud POST (Redes Sociales o Educación):', error);
-      });
-      
-  };
+    };
   
+    // Lógica para manejar la educación
+    const handleEducacion = () => {
+      fetch(`http://localhost:3000/educacion/empleado/${id}`, {
+        method: "GET",
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+        },
+      })
+        .then((responseEducacion) => {
+          if (responseEducacion.ok) {
+            // Si el empleado ya tiene una entrada, realiza una solicitud PUT
+            return fetch(`http://localhost:3000/educacion/${id}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(datosEducacion),
+            });
+          } else {
+            // Si el empleado no tiene una entrada, realiza una solicitud POST
+            return fetch("http://localhost:3000/educacion", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(datosEducacion),
+            });
+          }
+        })
+        .then((responseEducacion) => responseEducacion.json())
+        .then((dataEducacion) => {
+          console.log("Respuesta del servidor (Educación):", dataEducacion);
+        })
+        .catch((error) => {
+          console.error('Error en la solicitud POST/PUT (Educación):', error);
+        });
+    };
+  
+    handleRedesSociales();
+  
+    handleEducacion();
+  };
 
   /*Evento para establecer parrafos*/
 
@@ -1257,15 +1279,16 @@ function Personal() {
     setDescripcion(event.target.value);
   };
   const handleAddSocial = () => {
-    setRedesSociales([
-      ...redesSociales,
-      {
-        redSocialSeleccionada: "",
-        URLRedSocial: "",
-        NombreRedSocial: "",
-      },
-    ]);
-  };
+  setRedesSociales((prevRedesSociales) => [
+    ...prevRedesSociales,
+    {
+      redSocialSeleccionada: '',
+      URLRedSocial: '',
+      NombreRedSocial: '',
+    },
+  ]);
+};
+
   /*Editar educacion, experiencia y habilidades*/
 
   const handleEditEducationYear = (event, index) => {
@@ -1317,263 +1340,355 @@ function Personal() {
     setHabilidades(updatedHabilidades);
   };
 
-  //Renderizado de agregar educacion y experiencia
-  const renderDescription = () => {
-    if (Educacion.Descripcion) {
-      return (
-        <div>
-          {isEditing ? (
-            <TextareaAutosize
-              value={descripcion}
-              onChange={handleInputChange}
-              className="EditarPersonal"
-            />
-          ) : (
-            <p>{Educacion.Descripcion}</p>
-          )}
-        </div>
-      );
-    } else {
-      return (
-        <div>
-          {isEditing ? (
-            <TextareaAutosize
-              value={descripcion}
-              onChange={handleInputChange}
-              className="EditarPersonal"
-            />
-          ) : (
-            <p>{descripcion}</p>
-          )}
-        </div>
-      );
-    }
-  };
-
-  //Reenderiza educacion
-
-  const renderEducationSection = () => {
+//Renderizado de agregar educacion y experiencia
+const renderDescription = () => {
+  if (Educacion.Descripcion) {
     return (
-      <div className="education-column">
-        <h3 className="title">Educación</h3>
-        <div className="education-box">
-          {educationItems.map((item, index) => (
-            <div key={index} className="education-content">
-              <div className="content">
-                <div className="year">
-                  {isEditing ? (
-                    <input
-                      type="number"
-                      value={parseInt(item.year)}
-                      onChange={(event) =>
-                        handleEditEducationYear(event, index)
-                      }
-                      className="EditarEducacion"
-                    />
-                  ) : (
-                    <>
-                      <i className="bx bxs-calendar"></i> {item.year}
-                    </>
-                  )}
-                </div>
-                {isEditing ? (
-                  <TextareaAutosize
-                    value={item.title}
-                    onChange={(event) => handleEditEducationTitle(event, index)}
-                    className="EditarEducacion"
-                  />
-                ) : (
-                  <h3>{item.title}</h3>
-                )}
-                {isEditing ? (
-                  <TextareaAutosize
-                    value={item.description}
-                    onChange={(event) =>
-                      handleEditEducationDescription(event, index)
-                    }
-                    className="EditarEducacion"
-                  />
-                ) : (
-                  <p>{item.description}</p>
-                )}
-              </div>
-            </div>
-          ))}
-          {isEditing && (
-            <>
-              <button className="btn" onClick={handleAddEducation}>
-                Agregar Educación
-              </button>
-              <button className="btn" onClick={handleRemoveEducation}>
-                Eliminar Educación
-              </button>
-            </>
-          )}
-        </div>
+      <div>
+        {isEditing ? (
+          <TextareaAutosize
+            value={descripcion}
+            onChange={handleInputChange}
+            className="EditarPersonal"
+          />
+        ) : (
+          <p>{Educacion.Descripcion}</p>
+        )}
       </div>
     );
-  };
-
-  /*Renderiza la experiencia*/
-
-  const renderExperienceSection = () => {
+  } else {
     return (
-      <div className="education-column">
-        <h3 className="title">Experiencia</h3>
-        <div className="education-box">
-          {ExperienciaItems.map((item, index) => (
-            <div key={index} className="education-content">
-              <div className="content">
-                <div className="year">
-                  {isEditing ? (
-                    <input
-                      type="number"
-                      value={parseInt(item.year)}
-                      onChange={(event) =>
-                        handleEditExperienceYear(event, index)
-                      }
-                      className="EditarEducacion"
-                    />
-                  ) : (
-                    <>
-                      <i className="bx bxs-calendar"></i> {item.year}
-                    </>
-                  )}
-                </div>
-                {isEditing ? (
-                  <TextareaAutosize
-                    value={item.title}
-                    onChange={(event) =>
-                      handleEditExperienceTitle(event, index)
-                    }
-                    className="EditarEducacion"
-                  />
-                ) : (
-                  <h3>{item.title}</h3>
-                )}
-                {isEditing ? (
-                  <TextareaAutosize
-                    value={item.description}
-                    onChange={(event) =>
-                      handleEditExperienceDescription(event, index)
-                    }
-                    className="EditarEducacion"
-                  />
-                ) : (
-                  <p>{item.description}</p>
-                )}
-              </div>
-            </div>
-          ))}
-          {isEditing && (
-            <>
-              <button className="btn" onClick={handleAddExperience}>
-                Agregar Experiencia
-              </button>
-              <button className="btn" onClick={handleRemoveExperience}>
-                Eliminar Experiencia
-              </button>
-            </>
-          )}
-        </div>
+      <div>
+        {isEditing ? (
+          <TextareaAutosize
+            value={descripcion}
+            onChange={handleInputChange}
+            className="EditarPersonal"
+          />
+        ) : (
+          <p>{descripcion}</p>
+        )}
       </div>
     );
-  };
+  }
+};
 
-  //Render de habilidades
-  const renderSkillSection = () => {
-    return (
-      <div className="skills-box">
-        {habilidades.map((habilidad, index) => (
-          <div key={index} className="skills-content">
-            <div className="progress">
+//Reenderiza educacion
+
+const renderEducationSection = () => {
+  return (
+    <div className="education-column">
+      <h3 className="title">Educación</h3>
+      <div className="education-box">
+        {educationItems.map((item, index) => (
+          <div key={index} className="education-content">
+            <div className="content">
+              <div className="year">
+                {isEditing ? (
+               <input
+               type="number"
+               value={parseInt(item.year)}
+               onChange={(event) => handleEditEducationYear(event, index)}
+               className="EditarEducacion"
+             />               
+                ) : (
+                  <>
+                    <i className="bx bxs-calendar"></i> {item.year}
+                  </>
+                )}
+              </div>
               {isEditing ? (
-                <div className="edit-skill-name">
-                  <label htmlFor={`skillName${index}`}>Nombre:</label>
-                  <input
-                    type="text"
-                    id={`skillName${index}`}
-                    value={habilidad.skillName}
-                    onChange={(e) => handleEditSkillName(e, index)}
-                    className="EditarEducacion"
-                  />
-                  <span id={`skillSkill${index}`}>{habilidad.porcentaje}%</span>
-                  <div className="progress-bar-container">
-                    <div
-                      className="bar"
-                      style={{ width: `${habilidad.porcentaje}%` }}
-                    >
-                      <div className="bar-overlay"></div>
-                    </div>
-                  </div>
-                </div>
+                <TextareaAutosize
+                  value={item.title}
+                  onChange={(event) => handleEditEducationTitle(event, index)}
+                  className="EditarEducacion"
+                />
               ) : (
-                <div>
-                  <h3>
-                    {habilidad.skillName}{" "}
-                    <span id={`skillSkill${index}`}>
-                      {habilidad.porcentaje}%
-                    </span>
-                  </h3>
-                  <div className="progress-bar-container">
-                    <div
-                      className="bar"
-                      style={{ width: `${habilidad.porcentaje}%` }}
-                    >
-                      <div className="bar-overlay"></div>
-                    </div>
-                  </div>
-                </div>
+                <h3>{item.title}</h3>
               )}
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={habilidad.porcentaje}
-                className="skill-range"
-                onChange={(e) => actualizarPorcentaje(e, index)}
-                disabled={!isEditing}
-                style={{ display: isEditing ? "block" : "none" }}
-              />
+              {isEditing ? (
+                <TextareaAutosize
+                  value={item.description}
+                  onChange={(event) =>
+                    handleEditEducationDescription(event, index)
+                  }
+                  className="EditarEducacion"
+                />
+              ) : (
+                <p>{item.description}</p>
+              )}
             </div>
           </div>
         ))}
         {isEditing && (
           <>
-            <button className="btn" onClick={handleAddSkill}>
-              Agregar Habilidad
+            <button className="btn" onClick={handleAddEducation}>
+              Agregar Educación
             </button>
-            <button className="btn" onClick={handleRemoveSkill}>
-              Eliminar Habilidad
+            <button className="btn" onClick={handleRemoveEducation}>
+              Eliminar Educación
             </button>
           </>
         )}
       </div>
-    );
-  };
+    </div>
+  );
+};
 
-  // Resto de tu código para mostrar el empleado
+/*Renderiza la experiencia*/
 
+const renderExperienceSection = () => {
   return (
-    <div className="Personal">
-      <div className="personal-content">
-        <div className="section">
-          <section class="about" id="about">
-            <h2 class="heading">
-              Sobre <span>Mi</span>
-            </h2>
-
-            <div class="about-img">
-              <img src={empleadoEncontrado.Fotografia} alt="about" />
-              <span class="circle-spin"></span>
+    <div className="education-column">
+      <h3 className="title">Experiencia</h3>
+      <div className="education-box">
+        {ExperienciaItems.map((item, index) => (
+          <div key={index} className="education-content">
+            <div className="content">
+            <div className="year">
+                {isEditing ? (
+               <input
+               type="number"
+               value={parseInt(item.year)}
+               onChange={(event) => handleEditExperienceYear(event, index)}
+               className="EditarEducacion"
+             />               
+                ) : (
+                  <>
+                    <i className="bx bxs-calendar"></i> {item.year}
+                  </>
+                )}
+              </div>
+              {isEditing ? (
+                <TextareaAutosize
+                  value={item.title}
+                  onChange={(event) =>
+                    handleEditExperienceTitle(event, index)
+                  }
+                  className="EditarEducacion"
+                />
+              ) : (
+                <h3>{item.title}</h3>
+              )}
+              {isEditing ? (
+                <TextareaAutosize
+                  value={item.description}
+                  onChange={(event) =>
+                    handleEditExperienceDescription(event, index)
+                  }
+                  className="EditarEducacion"
+                />
+              ) : (
+                <p>{item.description}</p>
+              )}
             </div>
+          </div>
+        ))}
+        {isEditing && (
+            <>
+            <button className="btn" onClick={handleAddExperience}>
+              Agregar Experiencia
+            </button>
+            <button className="btn" onClick={handleRemoveExperience}>
+              Eliminar Experiencia
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
 
-            <div class="about-content">
-              <h3>
-                {empleadoEncontrado.Nombre} {empleadoEncontrado.ApelPaterno}{" "}
-                {empleadoEncontrado.ApelMaterno}
-              </h3>
-              {renderDescription()}
+//Render de habilidades
+const renderSkillSection = () => {
+  return (
+    <div className="skills-row">
+      <div className="skills-column">
+        <h2 className="title">Habilidades Profesionales</h2>
+
+        <div className="skills-box">
+          {habilidades.map((habilidad, index) => (
+            <div key={index} className="skills-content">
+              <div className="progress">
+                {isEditing ? (
+                  <div className="edit-skill-name">
+                    <label htmlFor={`skillName${index}`}>Nombre:</label>
+                    <input
+                      type="text"
+                      id={`skillName${index}`}
+                      value={habilidad.skillName}
+                      onChange={(e) => handleEditSkillName(e, index)}
+                      className="EditarEducacion"
+                    />
+                    <span id={`skillSkill${index}`}>
+                      {habilidad.porcentaje}%
+                    </span>
+                    <div className="progress-bar-container">
+                      <div
+                        className="bar"
+                        style={{ width: `${habilidad.porcentaje}%` }}
+                      >
+                        <div className="bar-overlay"></div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <h3>
+                      {habilidad.skillName}{" "}
+                      <span id={`skillSkill${index}`}>
+                        {habilidad.porcentaje}%
+                      </span>
+                    </h3>
+                    <div className="progress-bar-container">
+                      <div
+                        className="bar"
+                        style={{ width: `${habilidad.porcentaje}%` }}
+                      >
+                        <div className="bar-overlay"></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={habilidad.porcentaje}
+                  className="skill-range"
+                  onChange={(e) => actualizarPorcentaje(e, index)}
+                  disabled={!isEditing}
+                  style={{ display: isEditing ? "block" : "none" }}
+                />
+              </div>
+            </div>
+          ))}
+        {isEditing && (
+<>
+  <button className="btn" onClick={handleAddSkill}>
+    Agregar Habilidad
+  </button>
+  <button className="btn" onClick={handleRemoveSkill}>
+    Eliminar Habilidad
+  </button>
+</>
+)}
+
+        </div>
+      </div>
+    </div>
+  );
+};
+
+//RenderRedsocial
+
+const renderRedesSociales = () => {
+  return (
+    <div className="social-media-row">
+      <h2 className="heading">
+        Mis <span>Redes Sociales</span>
+      </h2>
+      {isEditing ? (
+        <div>
+          {redesSociales.map((social, index) => (
+            <div key={index} className="social-media-content">
+              <select
+                value={social.redSocialSeleccionada}
+                onChange={(e) => {
+                  const updatedRedesSociales = [...redesSociales];
+                  updatedRedesSociales[index].redSocialSeleccionada =
+                    e.target.value;
+                  setRedesSociales(updatedRedesSociales);
+                }}
+              >
+                <option value="">Selecciona una red social</option>
+                {RedSocial.map((option) => (
+                  <option key={option.label} value={option.label}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <TextareaAutosize
+                value={social.URLRedSocial}
+                onChange={(e) => {
+                  const updatedRedesSociales = [...redesSociales];
+                  updatedRedesSociales[index].URLRedSocial = e.target.value;
+                  setRedesSociales(updatedRedesSociales);
+                }}
+                className="EditarPersonal"
+                placeholder="URL de la red social"
+              />
+              <TextareaAutosize
+                value={social.NombreRedSocial}
+                onChange={(e) => {
+                  const updatedRedesSociales = [...redesSociales];
+                  updatedRedesSociales[index].NombreRedSocial = e.target.value;
+                  setRedesSociales(updatedRedesSociales);
+                }}
+                className="EditarPersonal"
+                placeholder="Nombre de usuario"
+              />
+            </div>
+          ))}
+          <button className="btn" onClick={handleAddSocial}>
+            Agregar otra red social
+          </button>
+        </div>
+      ) : (
+        <div>
+          {redesSociales.map((redSocial, index) => (
+            <a key={index} href={redSocial.URLRedSocial}>
+              <p>
+                {redSocial.redSocialSeleccionada && (
+                  <>
+                    {RedSocial.find(
+                      (social) =>
+                        social.label === redSocial.redSocialSeleccionada
+                    )?.value || "Icono no encontrado"}
+                    {redSocial.NombreRedSocial}
+                  </>
+                )}
+              </p>
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+
+
+
+// Resto de tu código para mostrar el empleado
+
+return (
+  <div className="Personal">
+    <div className="personal-content">
+      <section className="about" id="about">
+        <h2 className="main-heading">
+          Sobre <span>Mi</span>
+        </h2>
+              <div className="about-img">
+                <img src={empleadoEncontrado.Fotografia} alt="about" />
+                <span className="circle-spin"></span>
+              </div>
+
+        <div className="about-content">
+          <div className="left-column">
+              <h2 className="desc-heading">
+                Intro
+              </h2>
+            <div className="description">
+            <h3>
+              {empleadoEncontrado.Nombre} {empleadoEncontrado.ApelPaterno}{" "}
+              {empleadoEncontrado.ApelMaterno}
+            </h3>
+            <p>{renderDescription()}</p>
+            </div>
+          </div>
+          <div className="right-column">
+            <div className="content">
 
               <section className="education" id="education">
                 <h2 className="heading">
@@ -1586,87 +1701,17 @@ function Personal() {
               </section>
 
               <p>
-                <h2 class="heading">
+                <h2 className="heading">
                   Mis <span>Habilidades</span>
                 </h2>
               </p>
 
               <p>
-                <div class="skills-row">
-                  <h3 className="title">Habilidades Profesionales</h3>
-                  <div className="skills-column">{renderSkillSection()}</div>
-                </div>
+                <div className="skills-row">{renderSkillSection()}</div>
               </p>
 
               <div className="skills-row">
-                {isEditing ? (
-                  <div>
-                    {redesSociales.map((social, index) => (
-                      <div key={index}>
-                        <select
-                          value={social.redSocialSeleccionada}
-                          onChange={(e) => {
-                            const updatedRedesSociales = [...redesSociales];
-                            updatedRedesSociales[index].redSocialSeleccionada =
-                              e.target.value;
-                            setRedesSociales(updatedRedesSociales);
-                          }}
-                        >
-                          <option value="">Selecciona una red social</option>
-                          {RedSocial.map((option) => (
-                            <option key={option.label} value={option.label}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
-                        <TextareaAutosize
-                          value={social.URLRedSocial}
-                          onChange={(e) => {
-                            const updatedRedesSociales = [...redesSociales];
-                            updatedRedesSociales[index].URLRedSocial =
-                              e.target.value;
-                            setRedesSociales(updatedRedesSociales);
-                          }}
-                          className="EditarPersonal"
-                          placeholder="URL de la red social"
-                        />
-                        <TextareaAutosize
-                          value={social.NombreRedSocial}
-                          onChange={(e) => {
-                            const updatedRedesSociales = [...redesSociales];
-                            updatedRedesSociales[index].NombreRedSocial =
-                              e.target.value;
-                            setRedesSociales(updatedRedesSociales);
-                          }}
-                          className="EditarPersonal"
-                          placeholder="Nombre de usuario"
-                        />
-                      </div>
-                    ))}
-                    <button className="btn" onClick={handleAddSocial}>
-                      Agregar otra red social
-                    </button>
-                  </div>
-                ) : (
-                  <div>
-                    {redesSociales.map((redSocial, index) => (
-                      <a key={index} href={redSocial.URLRedSocial}>
-                        <p>
-                          {redSocial.redSocialSeleccionada && (
-                            <>
-                              {RedSocial.find(
-                                (social) =>
-                                  social.label ===
-                                  redSocial.redSocialSeleccionada
-                              )?.value || "Icono no encontrado"}
-                              {redSocial.NombreRedSocial}
-                            </>
-                          )}
-                        </p>
-                      </a>
-                    ))}
-                  </div>
-                )}
+                {renderRedesSociales()}
               </div>
 
               <div>
@@ -1681,11 +1726,12 @@ function Personal() {
                 )}
               </div>
             </div>
-          </section>
+          </div>
         </div>
-      </div>
+      </section>
     </div>
-  );
+  </div>
+);
 }
 
 export default App;
