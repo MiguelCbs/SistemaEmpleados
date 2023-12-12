@@ -270,9 +270,9 @@ span {
 .about-img {
 
   position: relative;
-  max-width: 30rem; 
-  width: auto;
-  height: 30vh; 
+  max-width: 200px; 
+  width: 100%;
+  height: 200px; 
   display: flex;
   justify-content: center;
   align-items: center;
@@ -289,14 +289,15 @@ span {
   border-radius: 50%;
 }
 
-.about-img .circle-spin {
+.circle-spin {
   position: absolute;
-  max-width: 110%;  
-  top: 50%;
+  overflow: visible;
+  max-width: 300px;  
+  top: 270px;
   left: 50%;
   transform: translate(-50%, -50%) rotate(0);
-  width: 90%; 
-  height: 90%;
+  width: 250px; 
+  height: 250px;
   border-radius: 50%;
   border-top: 0.2rem solid var(--second-bg-color);
   border-bottom: 0.2rem solid var(--second-bg-color);
@@ -334,7 +335,7 @@ span {
 }
 
 .about-content h3 {
-  font-size: 2.6rem;
+  font-size: 2rem;
 }
 
 .about-content p {
@@ -345,7 +346,6 @@ span {
 .left-column {
   flex: 1;
   margin-right: 20px; 
-  
   padding: 10px;
 }
 
@@ -487,6 +487,141 @@ span {
   padding-top: 0.5rem;
 }
 
+.info-containter{
+  margin-top: 15px;
+  display: flex;
+  justify-content: space-around;
+  align-items: stretch;
+  flex-direction: column;
+  min-height: auto;
+  padding-bottom: 5rem;
+  padding: 20px;
+  background-color: #081b29;
+  border-radius: 20px;
+}
+
+.info-content{
+  margin-top: 15px;
+}
+.content label {
+  display: flex;
+  padding: 5px;
+  margin-bottom: 5px;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.content h3 {
+  padding: 10px;
+  margin-bottom: 10px;
+  
+}
+
+.personasContacto h3{
+  margin-bottom: 40px;
+  font-size: 2.6rem;
+}
+
+.content input,
+.content textarea {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.education-box .info-content {
+  
+  position: relative;
+  padding-left: 2rem;
+}
+
+.education-box .info-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -1.1rem;
+  width: 2rem;
+  height: 2rem;
+  background: var(--main-color);
+  border-radius: 50%;
+}
+
+.info-content .content {
+  margin-top: 15px;
+  position: relative;
+  padding: 1.5rem;
+  border: 0.2rem solid var(--main-color);
+  border-radius: 0.6rem;
+  margin-bottom: 2rem;
+  overflow: hidden;
+}
+
+.info-content .content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 100%;
+  background: var(--second-bg-color);
+  z-index: -1;
+  transition: 0.5s;
+}
+
+.info-content .content:hover::before {
+  width: 100%;
+}
+
+.info-content .content .year {
+  font-size: 1.5rem;
+  color: var(--main-color);
+  padding-bottom: 0.5rem;
+}
+
+.info-content .content .year i {
+  padding-right: 0.5rem;
+}
+
+.info-content .content h3 {
+  font-size: 2rem;
+}
+
+.info-content .content p {
+  font-size: 1.6rem;
+  padding-top: 0.5rem;
+}
+
+.RH{
+  margin-top: 15px;
+  display: flex;
+  justify-content: space-around;
+  align-items: stretch;
+  flex-direction: column;
+  min-height: auto;
+  padding-bottom: 5rem;
+  padding: 20px;
+  background-color: #081b29;
+  border-radius: 20px;
+}
+
+.RH-info{
+  margin-top: 15px;
+}
+
+.RH label{
+  color: #00abf0;
+  font-size: 2rem;
+}
+
+.RH input{
+  border-radius: 20px;
+  font-size: 2rem;
+  margin-left: 10px;
+}
+
+
 .skills {
   min-height: auto;
   padding-bottom: 7rem;
@@ -514,6 +649,7 @@ span {
 }
 
 .skills-box .skills-content {
+  margin-top: 10px;
   position: relative;
   border: 0.2rem solid var(--main-color);
   border-radius: 0.6rem;
@@ -1012,6 +1148,7 @@ input[type='number']::-webkit-outer-spin-button {
 }
 
 .btn{
+  margin-top: 15px;
   position: relative;
   display: inline-flex;
   justify-content: center;
@@ -1685,3 +1822,125 @@ input[type='number']::-webkit-outer-spin-button {
   cursor: pointer;
   margin-top: -0.6rem;
 }
+
+.redes-sociales-container {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #081b29;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.social-media-row {
+  
+  align-items: center;
+  justify-content: space-between;
+
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.heading {
+  font-size: 20px;
+  color: #ffffff;
+}
+
+
+.social-media-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.social-media-content select{
+  appearance: none;
+  margin-top: 15px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #02a2e7;
+  color: #ffffff;
+  border-radius: 5px;
+  background-color: #081b29;
+  cursor: pointer;
+  outline: none;
+}
+
+
+.post-socialmedia{
+  margin-top: 15px;
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 15rem;
+  background: var(--main-color);
+  border: 0.2rem solid var(--main-color);
+  border-radius: 0.8rem;
+  font-size: 1.8rem;
+  font-weight: 600;
+  letter-spacing: 0.1rem;
+  color: var(--bg-color);
+  z-index: 1;
+  overflow: hidden;
+  transition: 0.5s;
+}
+
+.Nombre-Redsocial p{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #ffffff;  
+}
+
+.redes-sociales-container {
+  box-shadow: none;
+  gap: 30px; /* Espacio entre cada red social */
+}
+
+/* Estilos para cada enlace de red social */
+.red-social-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Estilos para cada ítem de red social */
+.red-social-item {
+  opacity: 0;
+  transform: translateY(20px);
+  display: flex;
+  animation: fadeInUp 0.5s forwards ease-in-out;
+  
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* Estilos para el ícono de red social */
+.red-social-icon {
+  margin-right: 15px !important;
+  bottom: none !important;
+  width: 60px;
+  height: 60px;
+  fill: white; /* Color del ícono, ajusta según tu diseño */
+}
+
+
+
+/* Estilos para el nombre de la red social */
+.nombre-red-social {
+  font-size: 20px !important;
+  color: white; /* Color del texto, ajusta según tu diseño */
+}
+
+.nombre-red-social p  {
+  margin-top: 500px !important;
+  color: red;
+}
+
+
+

@@ -851,6 +851,7 @@ function Personal() {
   const [isCreating, setIsCreating] = useState(false);
   const [EducacionCargada, setEducacionCargada] = useState(false);
   const [redesSocialesCargadas, setRedesSocialesCargadas] = useState(false);
+  const [expedienteClinicoCargado, setExpedienteClinicoCargado] = useState(false);
 
   /*Usestate para redes sociales*/
   const [redesSociales, setRedesSociales] = useState([
@@ -886,13 +887,12 @@ function Personal() {
     { skillName: "Web Design", porcentaje: 0 },
   ]);
 
-  /*const [archivoPDF, setArchivoPDF] = useState(null);*/
 
   /*Usestate que carga los datos del get*/
   const [Educacion, setEducacion] = useState({});
 
   /*Cargar los datos para Redes sociales*/
-  
+
   const RedSocial = [
     { label: "Facebook", value: <CiFacebook /> },
     { label: "Instagram", value: <FaInstagram /> },
@@ -901,7 +901,63 @@ function Personal() {
     { label: "tiktok", value: <FaTiktok /> },
   ];
 
+  //Expediente clinico
 
+  const [selectedFiles, setSelectedFiles] = useState([]);
+
+  const { openFilePicker, filesContent } = useFilePicker({
+    readAs: "DataURL",
+    accept: "pdf/*",
+    validators: [new FileAmountLimitValidator({ max: 1 })],
+  });
+
+  const opcionesTipoSangre = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+
+  const [expedienteclinico, setexpedienteclinico] = useState({
+    tipoSangre: "",
+    Padecimientos: "",
+    NumeroSeguroSocial: "",
+    Datossegurodegastos:"",
+    PDFSegurodegastosmedicos: null, // Initialize as null
+  });
+
+  const descargarPDF = () => {
+    const pdfData = expedienteclinico.PDFSegurodegastosmedicos?.[0];
+
+    if (pdfData) {
+      const { content, name } = pdfData;
+
+      // Crear un Blob a partir de los datos codificados en base64
+      const byteCharacters = atob(content.split(',')[1]);
+      const byteNumbers = new Array(byteCharacters.length);
+
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
+
+      // Crear un enlace y simular un clic para descargar el archivo
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = name || 'documento.pdf';
+      link.click();
+    }
+  };
+  useEffect(() => {
+    if (filesContent && filesContent.length > 0) {
+      // Handle the selected files
+      setSelectedFiles(filesContent);
+  
+      // Asigna el contenido del archivo a expedienteclinico.PDFSegurodegastosmedicos
+      setexpedienteclinico((prev) => ({
+        ...prev,
+        PDFSegurodegastosmedicos: filesContent,
+      }));
+    }
+  }, [filesContent]);
+  
 
   //Cargar los datos en base el ID de empleado con UsePrams
   const cargarEmpleadosBD = () => {
@@ -920,7 +976,6 @@ function Personal() {
 
   //Get y conexiones de los datos con los Usestate
   const cargarEducacionPorEmpleado = (empleadoId) => {
-  
     fetch(`http://localhost:3000/educacion/empleado/${empleadoId}`, {
       method: "GET",
       headers: {
@@ -940,7 +995,7 @@ function Personal() {
 
         setEducacion(json);
         setEducacionCargada(true);
-        console.log("Educación cargada:", json);
+
 
         // Mover la lógica que depende del estado actualizado aquí
         if (!json || !json.Educacion || !Array.isArray(json.Educacion)) {
@@ -1020,44 +1075,95 @@ function Personal() {
     fetch(`http://localhost:3000/redsocial/empleado/${empleadoId}`)
       .then((response) => {
         if (!response.ok) {
-          throw new Error(`Error al cargar datos de redes sociales: ${response.status}`);
+          throw new Error(
+            `Error al cargar datos de redes sociales: ${response.status}`
+          );
         }
         return response.json();
       })
       .then((json) => {
-        console.log('Respuesta completa del servidor (Redes Sociales):', json);
-  
+        console.log("Respuesta completa del servidor (Redes Sociales):", json);
+
         if (!json || !json[0].RedesSociales) {
-          console.log("Los datos de redes sociales no están en el formato esperado o no se han cargado.");
+          console.log(
+            "Los datos de redes sociales no están en el formato esperado o no se han cargado."
+          );
           return;
         }
-  
+
         const redesSocialesCopy = json[0].RedesSociales.map((item) => ({
           redSocialSeleccionada: item.redSocialSeleccionada,
           URLRedSocial: item.URLRedSocial,
           NombreRedSocial: item.NombreRedSocial,
         }));
-  
+
         setRedesSociales(redesSocialesCopy); // Actualiza el estado con los datos mapeados
         setRedesSocialesCargadas(true);
-  
-        console.log("Datos de redes sociales mapeados a redesSociales:", redesSocialesCopy);
+
+        console.log(
+          "Datos de redes sociales mapeados a redesSociales:",
+          redesSocialesCopy
+        );
       })
       .catch((error) => {
-        console.error('Error al cargar redes sociales:', error);
+        console.error("Error al cargar redes sociales:", error);
+      });
+  };
+
+  const cargarExpedienteClinicoPorEmpleado = (empleadoId) => {
+    fetch(`http://localhost:3000/expedienteclinico/empleado/${empleadoId}`, {
+      method: "GET",
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(
+            `Error al cargar datos de expediente clínico: ${response.status}`
+          );
+        }
+        return response.json();
+      })
+      .then((json) => {
+        console.log("Respuesta completa del servidor (Expediente Clínico):", json);
+  
+        if (!json || !Array.isArray(json) || json.length === 0) {
+          console.log(
+            "Los datos de expediente clínico no están en el formato esperado o no se han cargado."
+          );
+          return;
+        }
+  
+        const expedienteClinicoData = json[0]; // Tomar el primer objeto del array
+        // Actualiza el estado con los datos del expediente clínico
+        setexpedienteclinico({
+          tipoSangre: expedienteClinicoData.tipoSangre ,
+          Padecimientos: expedienteClinicoData.Padecimientos,
+          NumeroSeguroSocial: expedienteClinicoData.NumeroSeguroSocial ,
+          Datossegurodegastos: expedienteClinicoData.Segurodegastosmedicos,
+          PDFSegurodegastosmedicos: expedienteClinicoData.PDFSegurodegastosmedicos || null,
+        }); 
+        setExpedienteClinicoCargado(true);
+
+        console.log(
+          "Datos de expediente clínico mapeados a expedienteClinico:",
+          expedienteClinicoData
+        );
+      })
+      .catch((error) => {
+        console.error("Error al cargar expediente clínico:", error);
       });
   };
   
-  
-  
-  console.log("Las redes sociales cargadas son", redesSociales);
-  
-  /*Carga de datos antes de que inicie la pagina*/
+  // Llamada a la función para cargar el expediente clínico al iniciar la página
   useEffect(() => {
     cargarEmpleadosBD();
     cargarEducacionPorEmpleado(id.trim());
     cargarRedesSocialesPorEmpleado(id.trim());
+    cargarExpedienteClinicoPorEmpleado(id.trim());
   }, [id]);
+
 
   //Cargar los datos antes de iniciar la pagina
   if (setEducacionCargada) {
@@ -1139,16 +1245,49 @@ function Personal() {
     (empleado) => empleado._id === id.trim()
   );
 
+
+//Funcion para eliminar red social
+const handleDeleteSocial = (index) => {
+  const updatedRedesSociales = [...redesSociales];
+  updatedRedesSociales.splice(index, 1);
+  setRedesSociales(updatedRedesSociales);
+};
+
   /*Boton de editar, este permite que el usuario edite su informacion*/
   const handleEditClick = () => {
     setIsEditing(true);
     setIsCreating(false); // Al hacer clic en "Editar", no estás creando un elemento nuevo
   };
-  
 
   /*Manda los datos al POST o PUT y tambien impide que el usuario siga editando*/
   const handleSaveClick = () => {
     setIsEditing(false);
+
+
+    if (filesContent.length > 0) {
+      const file = filesContent[0];
+  
+      setexpedienteclinico((prev) => ({
+        ...prev,
+        PDFSegurodegastosmedicos: {
+          name: file.name,
+          content: file.content,
+        },
+      }));
+    }
+  
+
+    const datosExpedienteClinico = {
+      empleado_id: id.trim(),
+      tipoSangre: expedienteclinico.tipoSangre,
+      Padecimientos: expedienteclinico.Padecimientos,
+      NumeroSeguroSocial: expedienteclinico.NumeroSeguroSocial,
+      Segurodegastosmedicos: expedienteclinico.Datossegurodegastos,
+      PDFSegurodegastosmedicos: expedienteclinico.PDFSegurodegastosmedicos,
+    };
+  
+    console.log("Datos expediente clinico",datosExpedienteClinico);
+
 
     const datosRedesSociales = {
       empleado_id: id.trim(),
@@ -1217,19 +1356,27 @@ function Personal() {
         })
         .then((responseRedesSociales) => {
           if (!responseRedesSociales.ok) {
-            throw new Error(`Error al enviar datos de redes sociales: ${responseRedesSociales.status}`);
+            throw new Error(
+              `Error al enviar datos de redes sociales: ${responseRedesSociales.status}`
+            );
           }
           return responseRedesSociales.json();
         })
         .then((dataRedesSociales) => {
-          console.log('Respuesta del servidor (Redes Sociales):', dataRedesSociales);
+          console.log(
+            "Respuesta del servidor (Redes Sociales):",
+            dataRedesSociales
+          );
           // Resto de tu lógica para manejar la respuesta del servidor...
         })
         .catch((error) => {
-          console.error('Error en la solicitud POST/PUT (Redes Sociales):', error);
+          console.error(
+            "Error en la solicitud POST/PUT (Redes Sociales):",
+            error
+          );
         });
     };
-  
+
     // Lógica para manejar la educación
     const handleEducacion = () => {
       fetch(`http://localhost:3000/educacion/empleado/${id}`, {
@@ -1264,14 +1411,75 @@ function Personal() {
           console.log("Respuesta del servidor (Educación):", dataEducacion);
         })
         .catch((error) => {
-          console.error('Error en la solicitud POST/PUT (Educación):', error);
+          console.error("Error en la solicitud POST/PUT (Educación):", error);
         });
     };
-  
+
+    const handleExpedienteClinico = () => {
+      // Imprime los datos antes de la solicitud POST
+      console.log("Datos a enviar (Expediente Clínico):", datosExpedienteClinico);
+    
+      // Realiza una solicitud GET para verificar si ya existe un expediente clínico para el empleado
+      fetch(`http://localhost:3000/expedienteclinico/empleado/${id}`, {
+        method: "GET",
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+        },
+      })
+        .then((expedienteClinico) => {
+          if (expedienteClinico.ok) {
+            // Si el empleado ya tiene un expediente clínico, realiza una solicitud PUT
+            return fetch(`http://localhost:3000/expedienteclinico/empleado/${id}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(datosExpedienteClinico),
+            });
+          } else {
+            // Si el empleado no tiene un expediente clínico, realiza una solicitud POST
+            return fetch("http://localhost:3000/expedienteclinico", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(datosExpedienteClinico),
+            });
+          }
+        })
+        .then((responseExpedienteClinico) => {
+          if (!responseExpedienteClinico.ok) {
+            throw new Error(
+              `Error al enviar datos del expediente clínico: ${responseExpedienteClinico.status}`
+            );
+          }
+          return responseExpedienteClinico.json();
+        })
+        .then((dataExpedienteClinico) => {
+          console.log(
+            "Respuesta del servidor (Expediente Clínico):",
+            dataExpedienteClinico
+          );
+          // Resto de tu lógica para manejar la respuesta del servidor...
+        })
+        .catch((error) => {
+          console.error("Error en la solicitud POST/PUT (Expediente Clínico):", error);
+          if (error instanceof TypeError && error.message === 'Failed to fetch') {
+            console.error("Posibles problemas de CORS o el servidor no está en ejecución.");
+          }
+        });
+    };
+    
+    
+
     handleRedesSociales();
-  
+
     handleEducacion();
+
+    handleExpedienteClinico();
   };
+
+  console.log("este es el expediente que importa:",expedienteclinico)
 
   /*Evento para establecer parrafos*/
 
@@ -1279,15 +1487,15 @@ function Personal() {
     setDescripcion(event.target.value);
   };
   const handleAddSocial = () => {
-  setRedesSociales((prevRedesSociales) => [
-    ...prevRedesSociales,
-    {
-      redSocialSeleccionada: '',
+    setRedesSociales((prevRedesSociales) => [
+      ...prevRedesSociales,
+      {
+        redSocialSeleccionada: '',
       URLRedSocial: '',
       NombreRedSocial: '',
-    },
-  ]);
-};
+      },
+    ]);
+  };
 
   /*Editar educacion, experiencia y habilidades*/
 
@@ -1340,398 +1548,698 @@ function Personal() {
     setHabilidades(updatedHabilidades);
   };
 
-//Renderizado de agregar educacion y experiencia
-const renderDescription = () => {
-  if (Educacion.Descripcion) {
+
+  //Actualizar expediente clinico
+  const handleEditTipoSangre = (e) => {
+    const updatedExpedienteclinico = { ...expedienteclinico };
+    updatedExpedienteclinico.tipoSangre = e.target.value;
+    setexpedienteclinico(updatedExpedienteclinico);
+  };
+  
+  const handleEditPadecimientos = (e) => {
+    const updatedExpedienteclinico = { ...expedienteclinico };
+    updatedExpedienteclinico.Padecimientos = e.target.value;
+    setexpedienteclinico(updatedExpedienteclinico);
+  };
+  
+  const handleEditNumeroSeguroSocial = (e) => {
+    const updatedExpedienteclinico = { ...expedienteclinico };
+    updatedExpedienteclinico.NumeroSeguroSocial = e.target.value;
+    setexpedienteclinico(updatedExpedienteclinico);
+  };
+  const handleEditsegurodegastos = (e) => {
+    const updatedExpedienteclinico = { ...expedienteclinico };
+    updatedExpedienteclinico.Datossegurodegastos = e.target.value;
+    setexpedienteclinico(updatedExpedienteclinico);
+  };
+
+  //Renderizado de agregar educacion y experiencia
+  const renderDescription = () => {
+    if (Educacion.Descripcion) {
+      return (
+        <div>
+          {isEditing ? (
+            <TextareaAutosize
+              value={descripcion}
+              onChange={handleInputChange}
+              className="EditarPersonal"
+            />
+          ) : (
+            <p>{Educacion.Descripcion}</p>
+          )}
+        </div>
+      );
+    } else {
+      return (
+        <div>
+          {isEditing ? (
+            <TextareaAutosize
+              value={descripcion}
+              onChange={handleInputChange}
+              className="EditarPersonal"
+            />
+          ) : (
+            <p>{descripcion}</p>
+          )}
+        </div>
+      );
+    }
+  };
+
+  //Reenderiza educacion
+
+  const renderEducationSection = () => {
     return (
-      <div>
-        {isEditing ? (
-          <TextareaAutosize
-            value={descripcion}
-            onChange={handleInputChange}
-            className="EditarPersonal"
-          />
-        ) : (
-          <p>{Educacion.Descripcion}</p>
-        )}
-      </div>
-    );
-  } else {
-    return (
-      <div>
-        {isEditing ? (
-          <TextareaAutosize
-            value={descripcion}
-            onChange={handleInputChange}
-            className="EditarPersonal"
-          />
-        ) : (
-          <p>{descripcion}</p>
-        )}
-      </div>
-    );
-  }
-};
-
-//Reenderiza educacion
-
-const renderEducationSection = () => {
-  return (
-    <div className="education-column">
-      <h3 className="title">Educación</h3>
-      <div className="education-box">
-        {educationItems.map((item, index) => (
-          <div key={index} className="education-content">
-            <div className="content">
-              <div className="year">
-                {isEditing ? (
-               <input
-               type="number"
-               value={parseInt(item.year)}
-               onChange={(event) => handleEditEducationYear(event, index)}
-               className="EditarEducacion"
-             />               
-                ) : (
-                  <>
-                    <i className="bx bxs-calendar"></i> {item.year}
-                  </>
-                )}
-              </div>
-              {isEditing ? (
-                <TextareaAutosize
-                  value={item.title}
-                  onChange={(event) => handleEditEducationTitle(event, index)}
-                  className="EditarEducacion"
-                />
-              ) : (
-                <h3>{item.title}</h3>
-              )}
-              {isEditing ? (
-                <TextareaAutosize
-                  value={item.description}
-                  onChange={(event) =>
-                    handleEditEducationDescription(event, index)
-                  }
-                  className="EditarEducacion"
-                />
-              ) : (
-                <p>{item.description}</p>
-              )}
-            </div>
-          </div>
-        ))}
-        {isEditing && (
-          <>
-            <button className="btn" onClick={handleAddEducation}>
-              Agregar Educación
-            </button>
-            <button className="btn" onClick={handleRemoveEducation}>
-              Eliminar Educación
-            </button>
-          </>
-        )}
-      </div>
-    </div>
-  );
-};
-
-/*Renderiza la experiencia*/
-
-const renderExperienceSection = () => {
-  return (
-    <div className="education-column">
-      <h3 className="title">Experiencia</h3>
-      <div className="education-box">
-        {ExperienciaItems.map((item, index) => (
-          <div key={index} className="education-content">
-            <div className="content">
-            <div className="year">
-                {isEditing ? (
-               <input
-               type="number"
-               value={parseInt(item.year)}
-               onChange={(event) => handleEditExperienceYear(event, index)}
-               className="EditarEducacion"
-             />               
-                ) : (
-                  <>
-                    <i className="bx bxs-calendar"></i> {item.year}
-                  </>
-                )}
-              </div>
-              {isEditing ? (
-                <TextareaAutosize
-                  value={item.title}
-                  onChange={(event) =>
-                    handleEditExperienceTitle(event, index)
-                  }
-                  className="EditarEducacion"
-                />
-              ) : (
-                <h3>{item.title}</h3>
-              )}
-              {isEditing ? (
-                <TextareaAutosize
-                  value={item.description}
-                  onChange={(event) =>
-                    handleEditExperienceDescription(event, index)
-                  }
-                  className="EditarEducacion"
-                />
-              ) : (
-                <p>{item.description}</p>
-              )}
-            </div>
-          </div>
-        ))}
-        {isEditing && (
-            <>
-            <button className="btn" onClick={handleAddExperience}>
-              Agregar Experiencia
-            </button>
-            <button className="btn" onClick={handleRemoveExperience}>
-              Eliminar Experiencia
-            </button>
-          </>
-        )}
-      </div>
-    </div>
-  );
-};
-
-//Render de habilidades
-const renderSkillSection = () => {
-  return (
-    <div className="skills-row">
-      <div className="skills-column">
-        <h2 className="title">Habilidades Profesionales</h2>
-
-        <div className="skills-box">
-          {habilidades.map((habilidad, index) => (
-            <div key={index} className="skills-content">
-              <div className="progress">
-                {isEditing ? (
-                  <div className="edit-skill-name">
-                    <label htmlFor={`skillName${index}`}>Nombre:</label>
+      <div className="education-column">
+        <h3 className="title">Educación</h3>
+        <div className="education-box">
+          {educationItems.map((item, index) => (
+            <div key={index} className="education-content">
+              <div className="content">
+                <div className="year">
+                  {isEditing ? (
                     <input
-                      type="text"
-                      id={`skillName${index}`}
-                      value={habilidad.skillName}
-                      onChange={(e) => handleEditSkillName(e, index)}
+                      type="number"
+                      value={parseInt(item.year)}
+                      onChange={(event) => handleEditEducationYear(event, index)}
                       className="EditarEducacion"
                     />
-                    <span id={`skillSkill${index}`}>
-                      {habilidad.porcentaje}%
-                    </span>
-                    <div className="progress-bar-container">
-                      <div
-                        className="bar"
-                        style={{ width: `${habilidad.porcentaje}%` }}
-                      >
-                        <div className="bar-overlay"></div>
-                      </div>
-                    </div>
-                  </div>
+                  ) : (
+                    <>
+                      <i className="bx bxs-calendar"></i> {item.year}
+                    </>
+                  )}
+                </div>
+                {isEditing ? (
+                  <TextareaAutosize
+                    value={item.title}
+                    onChange={(event) => handleEditEducationTitle(event, index)}
+                    className="EditarEducacion"
+                  />
                 ) : (
-                  <div>
-                    <h3>
-                      {habilidad.skillName}{" "}
+                  <h3>{item.title}</h3>
+                )}
+                {isEditing ? (
+                  <TextareaAutosize
+                    value={item.description}
+                    onChange={(event) =>
+                      handleEditEducationDescription(event, index)
+                    }
+                    className="EditarEducacion"
+                  />
+                ) : (
+                  <p>{item.description}</p>
+                )}
+              </div>
+            </div>
+          ))}
+          {isEditing && (
+            <>
+              <button className="btn" onClick={handleAddEducation}>
+                Agregar Educación
+              </button>
+              <button className="btn" onClick={handleRemoveEducation}>
+                Eliminar Educación
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  /*Renderiza la experiencia*/
+
+  const renderExperienceSection = () => {
+    return (
+      <div className="education-column">
+        <h3 className="title">Experiencia</h3>
+        <div className="education-box">
+          {ExperienciaItems.map((item, index) => (
+            <div key={index} className="education-content">
+              <div className="content">
+                <div className="year">
+                  {isEditing ? (
+                    <input
+                      type="number"
+                      value={parseInt(item.year)}
+                      onChange={(event) => handleEditExperienceYear(event, index)}
+                      className="EditarEducacion"
+                    />
+                  ) : (
+                    <>
+                      <i className="bx bxs-calendar"></i> {item.year}
+                    </>
+                  )}
+                </div>
+                {isEditing ? (
+                  <TextareaAutosize
+                    value={item.title}
+                    onChange={(event) =>
+                      handleEditExperienceTitle(event, index)
+                    }
+                    className="EditarEducacion"
+                  />
+                ) : (
+                  <h3>{item.title}</h3>
+                )}
+                {isEditing ? (
+                  <TextareaAutosize
+                    value={item.description}
+                    onChange={(event) =>
+                      handleEditExperienceDescription(event, index)
+                    }
+                    className="EditarEducacion"
+                  />
+                ) : (
+                  <p>{item.description}</p>
+                )}
+              </div>
+            </div>
+          ))}
+          {isEditing && (
+            <>
+              <button className="btn" onClick={handleAddExperience}>
+                Agregar Experiencia
+              </button>
+              <button className="btn" onClick={handleRemoveExperience}>
+                Eliminar Experiencia
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  //Render de habilidades
+  const renderSkillSection = () => {
+    return (
+      <div className="skills-row">
+        <div className="skills-column">
+          <h2 className="title">Habilidades Profesionales</h2>
+
+          <div className="skills-box">
+            {habilidades.map((habilidad, index) => (
+              <div key={index} className="skills-content">
+                <div className="progress">
+                  {isEditing ? (
+                    <div className="edit-skill-name">
+                      <label htmlFor={`skillName${index}`}>Nombre:</label>
+                      <input
+                        type="text"
+                        id={`skillName${index}`}
+                        value={habilidad.skillName}
+                        onChange={(e) => handleEditSkillName(e, index)}
+                        className="EditarEducacion"
+                      />
                       <span id={`skillSkill${index}`}>
                         {habilidad.porcentaje}%
                       </span>
-                    </h3>
-                    <div className="progress-bar-container">
-                      <div
-                        className="bar"
-                        style={{ width: `${habilidad.porcentaje}%` }}
-                      >
-                        <div className="bar-overlay"></div>
+                      <div className="progress-bar-container">
+                        <div
+                          className="bar"
+                          style={{ width: `${habilidad.porcentaje}%` }}
+                        >
+                          <div className="bar-overlay"></div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={habilidad.porcentaje}
-                  className="skill-range"
-                  onChange={(e) => actualizarPorcentaje(e, index)}
-                  disabled={!isEditing}
-                  style={{ display: isEditing ? "block" : "none" }}
+                  ) : (
+                    <div>
+                      <h3>
+                        {habilidad.skillName}{" "}
+                        <span id={`skillSkill${index}`}>
+                          {habilidad.porcentaje}%
+                        </span>
+                      </h3>
+                      <div className="progress-bar-container">
+                        <div
+                          className="bar"
+                          style={{ width: `${habilidad.porcentaje}%` }}
+                        >
+                          <div className="bar-overlay"></div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={habilidad.porcentaje}
+                    className="skill-range"
+                    onChange={(e) => actualizarPorcentaje(e, index)}
+                    disabled={!isEditing}
+                    style={{ display: isEditing ? "block" : "none" }}
+                  />
+                </div>
+              </div>
+            ))}
+            {isEditing && (
+              <>
+                <button className="btn" onClick={handleAddSkill}>
+                  Agregar Habilidad
+                </button>
+                <button className="btn" onClick={handleRemoveSkill}>
+                  Eliminar Habilidad
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  //RenderRedsocial
+
+  const renderRedesSociales = () => {
+    return (
+      <div className="redes-sociales-container">
+      <div className="social-media-row">
+      <h2 className="heading">
+        Redes Sociales
+      </h2>
+        {isEditing ? (
+          <div>
+            {redesSociales.map((social, index) => (
+              <div key={index} className="social-media-content">
+                <select
+                  value={social.redSocialSeleccionada}
+                  onChange={(e) => {
+                    const updatedRedesSociales = [...redesSociales];
+                    updatedRedesSociales[index].redSocialSeleccionada =
+                      e.target.value;
+                    setRedesSociales(updatedRedesSociales);
+                  }}
+                >
+                  <option value="">Selecciona una red social</option>
+                  {RedSocial.map((option) => (
+                    <option key={option.label} value={option.label}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <TextareaAutosize
+                  value={social.URLRedSocial}
+                  onChange={(e) => {
+                    const updatedRedesSociales = [...redesSociales];
+                    updatedRedesSociales[index].URLRedSocial = e.target.value;
+                    setRedesSociales(updatedRedesSociales);
+                  }}
+                  className="EditarPersonal"
+                  placeholder="URL de la red social"
                 />
+                <TextareaAutosize
+                  value={social.NombreRedSocial}
+                  onChange={(e) => {
+                    const updatedRedesSociales = [...redesSociales];
+                    updatedRedesSociales[index].NombreRedSocial = e.target.value;
+                    setRedesSociales(updatedRedesSociales);
+                  }}
+                  className="EditarPersonal"
+                  placeholder="Nombre de usuario"
+                />
+                   <button
+                   className="post-socialmedia"
+      
+          onClick={() => handleDeleteSocial(index)}
+        >
+          Eliminar
+        </button>
+              </div>
+            ))}
+             <button className="post-socialmedia" onClick={handleAddSocial}>
+            Agregar red social
+            </button>
+            
+          </div>
+        ) : (
+          <div className="redes-sociales-container">
+            {redesSociales.map((redSocial, index) => (
+              <a
+              key={index}
+              href={`https://${redSocial.URLRedSocial}`}
+              className="red-social-link"
+              target="_blank" 
+              rel="noopener noreferrer" 
+            >
+          <div className="red-social-item">
+            {redSocial.redSocialSeleccionada && (
+              <svg
+                className="red-social-icon"
+                viewBox="0 0 10 10"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                      {RedSocial.find(
+                        (social) =>
+                          social.label === redSocial.redSocialSeleccionada
+                      )?.value || "Icono no encontrado"} 
+                      </svg>
+                  )}
+                <div className="red-social-info">
+          <p className="nombre-red-social">{redSocial.NombreRedSocial}</p>
+        </div>
+      </div>
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
+      </div>
+    );
+  };
+
+  
+const renderInfoPersonalSection = () => {
+  return (
+    <div className="info-column">
+    <div className="info-box">
+      {educationItems.map((item, index) => (
+        <div key={index} className="info-content">
+          <h3>Datos de Contacto</h3>
+          <div className="content">
+            
+            <label>Teléfono Fijo:</label>
+            {isEditing ? (
+              <input
+                type="text"
+                value={item.telefonoFijo}
+                
+                className="EditarEducacion"
+              />
+            ) : (
+              <p>{item.telefonoFijo}</p>
+            )}
+
+            
+            <label>Teléfono Celular (Obligatorio):</label>
+            {isEditing ? (
+              <input
+                type="text"
+                value={item.telefonoCelular}
+                
+                className="EditarEducacion"
+              />
+            ) : (
+              <p>{item.telefonoCelular}</p>
+            )}
+
+           
+            <label>Dirección:</label>
+            {isEditing ? (
+              <input
+                type="text"
+                value={item.direccion}
+                
+                className="EditarEducacion"
+              />
+            ) : (
+              <p>{item.direccion}</p>
+            )}
+
+            
+            <label>ID de WhatsApp:</label>
+            {isEditing ? (
+              <input
+                type="text"
+                value={item.whatsappId}
+                
+                className="EditarEducacion"
+              />
+            ) : (
+              <p>{item.whatsappId}</p>
+            )}
+
+            
+            <label>ID de Telegram:</label>
+            {isEditing ? (
+              <input
+                type="text"
+                value={item.telegramId}
+                
+                className="EditarEducacion"
+              />
+            ) : (
+              <p>{item.telegramId}</p>
+            )}
+
+            
+            <label>Correo:</label>
+            {isEditing ? (
+              <input
+                type="text"
+                value={item.correo}
+                
+                className="EditarEducacion"
+              />
+            ) : (
+              <p>{item.correo}</p>
+            )}
+
+            
+            <div className="personasContacto">
+              <h3>Personas de Contacto</h3>
+
+            
+              <label>Nombre de Contacto:</label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={item.nombreContacto}
+                  
+                  className="EditarEducacion"
+                />
+              ) : (
+                <p>{item.nombreContacto}</p>
+              )}
+
+              
+              <label>Parentesco:</label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={item.parentesco}
+                  
+                  className="EditarEducacion"
+                />
+              ) : (
+                <p>{item.parentesco}</p>
+              )}
+
+              
+              <label>Número de Teléfono:</label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={item.telefonoContacto}
+                  
+                  className="EditarEducacion"
+                />
+              ) : (
+                <p>{item.telefonoContacto}</p>
+              )}
+
+              
+              <label>Correo del Contacto:</label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={item.correoContacto}
+                  
+                  className="EditarEducacion"
+                />
+              ) : (
+                <p>{item.correoContacto}</p>
+              )}
+
+              
+              <label>Dirección del Contacto:</label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={item.direccionContacto}
+                  
+                  className="EditarEducacion"
+                />
+              ) : (
+                <p>{item.direccionContacto}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      ))}
+      {isEditing && (
+        <>
+          <button className="btn" onClick={handleAddEducation}>
+            Agregar Educación
+          </button>
+          <button className="btn" onClick={handleRemoveEducation}>
+            Eliminar Educación
+          </button>
+        </>
+      )}
+    </div>
+  </div>
+  );
+};
+
+
+
+  // Resto de tu código para mostrar el empleado
+
+
+
+  return (
+    <div className="Personal">
+      <div className="personal-content">
+        <section className="about" id="about">
+          <h2 className="main-heading">
+            Sobre <span>Mi</span>
+          </h2>
+          <div className="circle-spin"></div>
+          <div className="about-img">
+            <img src={empleadoEncontrado.Fotografia} alt="about" />
+          </div>
+
+          <div className="about-content">
+            <div className="left-column">
+              <h2 className="desc-heading">Intro</h2>
+              <div className="description">
+                <h3>
+                  {empleadoEncontrado.Nombre} {empleadoEncontrado.ApelPaterno}{" "}
+                  {empleadoEncontrado.ApelMaterno}
+                </h3>
+                <p>{renderDescription()}</p>
+                </div>
+            <div className="info-containter">
+              {renderInfoPersonalSection()}
+                </div>
+            <div className="redes-sociales-containter">
+              {renderRedesSociales()}
+              </div>
+              <div className="RH">
+              <h3>Recursos Humanos</h3>
+                <div className="RH-info">
+                  <h3> ***Formularios con la información*** </h3>
+                </div>
+            </div>
+              
+            </div>
+            <div className="right-column">
+              <div className="content">
+                <section className="education" id="education">
+                  <h2 className="heading">
+                    Mi <span>Trayectoria</span>
+                  </h2>
+                  <div className="education-row">
+                    {renderEducationSection()}
+                    {renderExperienceSection()}
+                  </div>
+                </section>
+
+                <p>
+                  <h2 className="heading">
+                    Mis <span>Habilidades</span>
+                  </h2>
+                </p>
+
+                <p>
+                  <div className="skills-row">{renderSkillSection()}</div>
+                </p>
+
+                <p>
+                <div className="skills-row">
+       {isEditing ? (
+  <div>
+    <select
+      id="tipoSangre"
+      value={expedienteclinico.tipoSangre}
+      onChange={handleEditTipoSangre}
+    >
+      <option value="">Selecciona el tipo de sangre</option>
+      {opcionesTipoSangre.map((tipo) => (
+        <option key={tipo} value={tipo}>
+          {tipo}
+        </option>
+      ))}
+    </select>
+    <TextareaAutosize
+      value={expedienteclinico.Padecimientos}
+      onChange={handleEditPadecimientos}
+      className="EditarPersonal"
+      placeholder="Padecimientos"
+    />
+    <TextareaAutosize
+      value={expedienteclinico.NumeroSeguroSocial}
+      onChange={handleEditNumeroSeguroSocial}
+      className="EditarPersonal"
+      placeholder="Numero del seguro social"
+    />
+  <TextareaAutosize
+      value={expedienteclinico.Datossegurodegastos}
+      onChange={handleEditsegurodegastos}
+      className="EditarPersonal"
+      placeholder="Numero del seguro social"
+    />
+    <div>
+      <button onClick={openFilePicker}>Seleccionar Archivo PDF</button>
+
+      {selectedFiles.map((file, index) => (
+        <div key={index}>
+          <p>{file.name}</p>
+          <img
+            style={{ width: 200, height: 200, marginTop: 10 }}
+            alt={file.name}
+            src={file.content}
+          ></img>
+          <br />
+        </div>
+      ))}
+    </div>
+
+  </div>
+) : (
+  // Si no está editando, solo muestra el nombre del archivo PDF
+  <div>
+  <p>{expedienteclinico.tipoSangre}</p>
+  <p>{expedienteclinico.Padecimientos}</p>
+  <p>{expedienteclinico.NumeroSeguroSocial}</p>
+  <p>{expedienteclinico.Datossegurodegastos}</p>
+  <div>
+        {expedienteclinico.PDFSegurodegastosmedicos && (
+          <>
+            <p>Nombre del PDF: {expedienteclinico.PDFSegurodegastosmedicos[0]?.name}</p>
+            <button onClick={descargarPDF}>
+              Descargar PDF
+            </button>
+          </>
+        )}
+      </div>
+  </div>
+)}
+</div>
+                </p>
+
+                <div>
+                  {isEditing ? (
+                    <button className="btn" onClick={handleSaveClick}>
+                      Guardar
+                    </button>
+                  ) : (
+                    <button className="btn" onClick={handleEditClick}>
+                      Editar
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
-          ))}
-        {isEditing && (
-<>
-  <button className="btn" onClick={handleAddSkill}>
-    Agregar Habilidad
-  </button>
-  <button className="btn" onClick={handleRemoveSkill}>
-    Eliminar Habilidad
-  </button>
-</>
-)}
-
-        </div>
+          </div>
+        </section>
       </div>
     </div>
   );
-};
-
-//RenderRedsocial
-
-const renderRedesSociales = () => {
-  return (
-    <div className="social-media-row">
-      <h2 className="heading">
-        Mis <span>Redes Sociales</span>
-      </h2>
-      {isEditing ? (
-        <div>
-          {redesSociales.map((social, index) => (
-            <div key={index} className="social-media-content">
-              <select
-                value={social.redSocialSeleccionada}
-                onChange={(e) => {
-                  const updatedRedesSociales = [...redesSociales];
-                  updatedRedesSociales[index].redSocialSeleccionada =
-                    e.target.value;
-                  setRedesSociales(updatedRedesSociales);
-                }}
-              >
-                <option value="">Selecciona una red social</option>
-                {RedSocial.map((option) => (
-                  <option key={option.label} value={option.label}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <TextareaAutosize
-                value={social.URLRedSocial}
-                onChange={(e) => {
-                  const updatedRedesSociales = [...redesSociales];
-                  updatedRedesSociales[index].URLRedSocial = e.target.value;
-                  setRedesSociales(updatedRedesSociales);
-                }}
-                className="EditarPersonal"
-                placeholder="URL de la red social"
-              />
-              <TextareaAutosize
-                value={social.NombreRedSocial}
-                onChange={(e) => {
-                  const updatedRedesSociales = [...redesSociales];
-                  updatedRedesSociales[index].NombreRedSocial = e.target.value;
-                  setRedesSociales(updatedRedesSociales);
-                }}
-                className="EditarPersonal"
-                placeholder="Nombre de usuario"
-              />
-            </div>
-          ))}
-          <button className="btn" onClick={handleAddSocial}>
-            Agregar otra red social
-          </button>
-        </div>
-      ) : (
-        <div>
-          {redesSociales.map((redSocial, index) => (
-            <a key={index} href={redSocial.URLRedSocial}>
-              <p>
-                {redSocial.redSocialSeleccionada && (
-                  <>
-                    {RedSocial.find(
-                      (social) =>
-                        social.label === redSocial.redSocialSeleccionada
-                    )?.value || "Icono no encontrado"}
-                    {redSocial.NombreRedSocial}
-                  </>
-                )}
-              </p>
-            </a>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
-
-
-
-
-// Resto de tu código para mostrar el empleado
-
-return (
-  <div className="Personal">
-    <div className="personal-content">
-      <section className="about" id="about">
-        <h2 className="main-heading">
-          Sobre <span>Mi</span>
-        </h2>
-              <div className="about-img">
-                <img src={empleadoEncontrado.Fotografia} alt="about" />
-                <span className="circle-spin"></span>
-              </div>
-
-        <div className="about-content">
-          <div className="left-column">
-              <h2 className="desc-heading">
-                Intro
-              </h2>
-            <div className="description">
-            <h3>
-              {empleadoEncontrado.Nombre} {empleadoEncontrado.ApelPaterno}{" "}
-              {empleadoEncontrado.ApelMaterno}
-            </h3>
-            <p>{renderDescription()}</p>
-            </div>
-          </div>
-          <div className="right-column">
-            <div className="content">
-
-              <section className="education" id="education">
-                <h2 className="heading">
-                  Mi <span>Trayectoria</span>
-                </h2>
-                <div className="education-row">
-                  {renderEducationSection()}
-                  {renderExperienceSection()}
-                </div>
-              </section>
-
-              <p>
-                <h2 className="heading">
-                  Mis <span>Habilidades</span>
-                </h2>
-              </p>
-
-              <p>
-                <div className="skills-row">{renderSkillSection()}</div>
-              </p>
-
-              <div className="skills-row">
-                {renderRedesSociales()}
-              </div>
-
-              <div>
-                {isEditing ? (
-                  <button className="btn" onClick={handleSaveClick}>
-                    Guardar
-                  </button>
-                ) : (
-                  <button className="btn" onClick={handleEditClick}>
-                    Editar
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-  </div>
-);
 }
 
 export default App;
