@@ -1713,9 +1713,9 @@ function Personal() {
         });
     };
     
-    
-   
+    // Llamada a la función handlePersonasContacto
     handlePersonasContacto();
+    
     
     handleUpdateDatosContacto();
     
@@ -1840,7 +1840,7 @@ function Personal() {
   const renderDescription = () => {
     if (Educacion.Descripcion) {
       return (
-        <div>
+        <div className="info-desc">
           {isEditing ? (
             <TextareaAutosize
               value={descripcion}
@@ -2140,8 +2140,10 @@ function Personal() {
               </button>
             </div>
           ) : (
-            <div className="redes-sociales-container">
+            <div className="redes-sociales-cont">
               {redesSociales.map((redSocial, index) => (
+                
+                
                 <a
                   key={index}
                   href={`https://${redSocial.URLRedSocial}`}
@@ -2169,6 +2171,7 @@ function Personal() {
                     </div>
                   </div>
                 </a>
+              
               ))}
             </div>
           )}
@@ -2314,6 +2317,62 @@ function Personal() {
     );
   };
 
+  //Render RH
+
+  const renderRHSection = () => {
+    return (
+      <div className="RH-column">
+        <div className="RH-box">
+          <div className="RH-content">
+            <div className="content">
+              <label>Puesto</label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  
+                />
+              ) : (
+                <p></p>
+              )}
+  
+              <label>Jefe Inmediato</label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  
+                />
+              ) : (
+                <p></p>
+              )}
+  
+              <label>Horario Laboral</label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  
+                />
+              ) : (
+                <p></p>
+              )}
+  
+              <label>Zona Horaria</label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  
+                />
+              ) : (
+                <p></p>
+              )}
+
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  
   // Resto de tu código para mostrar el empleado
 
   return (
@@ -2344,37 +2403,8 @@ function Personal() {
               <div className="redes-sociales-containter">
                 {renderRedesSociales()}
               </div>
-              <div className="RH">
-                <h3>Recursos Humanos</h3>
-                <div className="RH-info">
-                  <h3> ***Formularios con la información*** </h3>
-                </div>
-              </div>
-            </div>
-            <div className="right-column">
-              <div className="content">
-                <section className="education" id="education">
-                  <h2 className="heading">
-                    Mi <span>Trayectoria</span>
-                  </h2>
-                  <div className="education-row">
-                    {renderEducationSection()}
-                    {renderExperienceSection()}
-                  </div>
-                </section>
-
-                <p>
-                  <h2 className="heading">
-                    Mis <span>Habilidades</span>
-                  </h2>
-                </p>
-
-                <p>
-                  <div className="skills-row">{renderSkillSection()}</div>
-                </p>
-
-                <p>
-                  <div className="skills-row">
+              <div className="expediente-clinico">
+                
                     {isEditing ? (
                       <div>
                         <select
@@ -2431,11 +2461,14 @@ function Personal() {
                       </div>
                     ) : (
                       // Si no está editando, solo muestra el nombre del archivo PDF
-                      <div>
+                      <div className="expediente-clinico">
+                        <h3>Expediente Clínico</h3>
+                         <div className="expediente-clinico-content"> 
                         <p>{expedienteclinico.tipoSangre}</p>
                         <p>{expedienteclinico.Padecimientos}</p>
                         <p>{expedienteclinico.NumeroSeguroSocial}</p>
                         <p>{expedienteclinico.Datossegurodegastos}</p>
+                        </div>
                         <div>
                           {expedienteclinico.PDFSegurodegastosmedicos && (
                             <>
@@ -2455,6 +2488,39 @@ function Personal() {
                       </div>
                     )}
                   </div>
+              
+            </div>
+            <div className="right-column">
+              <div className="content">
+                <section className="education" id="education">
+                  <h2 className="heading">
+                    Mi <span>Trayectoria</span>
+                  </h2>
+                  <div className="education-row">
+                    {renderEducationSection()}
+                    {renderExperienceSection()}
+                  </div>
+                </section>
+
+                <p>
+                  <h2 className="heading">
+                    Mis <span>Habilidades</span>
+                  </h2>
+                </p>
+
+                <p>
+                  <div className="skills-row">{renderSkillSection()}</div>
+                </p>
+
+                <div className="RH">
+                <h3>Recursos Humanos</h3>
+                <div className="RH-info">
+                  {renderRHSection()}                  
+                </div>
+              </div>
+
+                <p>
+                  
                 </p>
 
                 <div>

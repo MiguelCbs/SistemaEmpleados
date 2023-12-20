@@ -355,6 +355,13 @@ span {
   padding: 15px
 }
 
+.info-desc{
+  padding: 10px;
+  margin-top: 5px;
+  border-radius: 5px;
+  border: 0.2rem solid var(--main-color);
+}
+
 .desc-heading {
   font-size: 3rem;
   margin-bottom: 3rem;
@@ -1835,7 +1842,7 @@ input[type='number']::-webkit-outer-spin-button {
   
   align-items: center;
   justify-content: space-between;
-
+  
   flex-wrap: wrap;
   gap: 20px;
 }
@@ -1894,18 +1901,21 @@ input[type='number']::-webkit-outer-spin-button {
   color: #ffffff;  
 }
 
-.redes-sociales-container {
+.redes-sociales-cont {
+  margin-top: 10px;
+  padding: 10px;
   box-shadow: none;
-  gap: 30px; /* Espacio entre cada red social */
+  gap: 30px; 
+  border: 0.2rem solid var(--main-color);
+  border-radius: 5px;   
 }
 
-/* Estilos para cada enlace de red social */
 .red-social-link {
   text-decoration: none;
   color: inherit;
 }
 
-/* Estilos para cada ítem de red social */
+
 .red-social-item {
   opacity: 0;
   transform: translateY(20px);
@@ -1920,21 +1930,19 @@ input[type='number']::-webkit-outer-spin-button {
     transform: translateY(0);
   }
 }
-/* Estilos para el ícono de red social */
+
 .red-social-icon {
   margin-right: 15px !important;
   bottom: none !important;
   width: 60px;
   height: 60px;
-  fill: white; /* Color del ícono, ajusta según tu diseño */
+  fill: white;
 }
 
 
-
-/* Estilos para el nombre de la red social */
 .nombre-red-social {
   font-size: 20px !important;
-  color: white; /* Color del texto, ajusta según tu diseño */
+  color: white; 
 }
 
 .nombre-red-social p  {
@@ -1942,5 +1950,100 @@ input[type='number']::-webkit-outer-spin-button {
   color: red;
 }
 
+.expediente-clinico{
+  margin-top: 15px;
+  min-height: auto;
+  padding-bottom: 5rem;
+  padding: 10px;
+  background-color: #081b29;
+  border-radius: 20px;
+    
+}
+
+.expediente-clinico select{
+  appearance: none;
+  margin-top: 15px;
+  margin-bottom: 15px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #02a2e7;
+  color: #ffffff;
+  border-radius: 5px;
+  background-color: #081b29;
+  cursor: pointer;
+  outline: none;
+}
+
+.expediente-clinico button{
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 30rem;
+  height: 5%;
+  background: var(--main-color);
+  border: 0.2rem solid var(--main-color);
+  border-radius: 0.8rem;
+  font-size: 1.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1rem;
+  color: var(--bg-color);
+  z-index: 1;
+  overflow: hidden;
+  transition: 0.5s;
+  margin-left: 19px;
+  margin-top: 15px ;
+}
+
+
+
+.expediente-clinico h3{
+  font-size: 20px;
+  color: #fff;
+}
+
+.expediente-clinico-content{
+  padding-left: 10px;
+  border: 0.2rem solid var(--main-color);
+  margin-top: 15px;
+  display: flex;
+  align-items: first baseline;
+  flex-direction: column;
+  font-weight: bold;
+  font-size: 20px;
+  border-radius: 5px;
+}
+
+.RH-content .content{
+  border-radius: 5px;
+  border: 0.2rem solid var(--main-color);
+  padding: 10px;
+}
+
+.RH-content .content input{
+  position: relative;
+  padding: 1.5rem;
+  border: 0.2rem solid var(--main-color);
+  border-radius: 0.6rem;
+  margin-bottom: 2rem;
+  overflow: hidden;
+  background: none;
+  color: white;
+  margin: 0.5rem;
+  display: inline-block;
+  width: 90%;
+
+}
+
+.RH-content label{
+  display: flex;
+  padding: 5px;
+  margin-bottom: 5px;
+  font-size: 15px;
+  font-weight: bold;
+  color: #fff;
+}
 
 
