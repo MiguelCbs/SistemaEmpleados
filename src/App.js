@@ -611,6 +611,121 @@ function Empleados() {
       .then((json) => {
         alert(json.message);
         cargarEmpleadosBD();
+        fetch(`http://localhost:3000/datoscontacto/${id}`, {
+          method: "DELETE",
+          headers: {
+            "Content-type": "application/json",
+            Accept: "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(
+                `Error al eliminar datoscontacto: ${response.status}`
+              );
+            }
+            return response.json();
+          })
+          .catch((error) => {
+            console.error(
+              "Error en la solicitud DELETE (datoscontacto):",
+              error
+            );
+            // Maneja errores aquí si es necesario
+          });
+        fetch(`http://localhost:3000/expedienteclinico/${id}`, {
+          method: "DELETE",
+          headers: {
+            "Content-type": "application/json",
+            Accept: "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(
+                `Error al eliminar datoscontacto: ${response.status}`
+              );
+            }
+            return response.json();
+          })
+          .catch((error) => {
+            console.error(
+              "Error en la solicitud DELETE (datoscontacto):",
+              error
+            );
+            // Maneja errores aquí si es necesario
+          });
+        fetch(`http://localhost:3000/educacion/${id}`, {
+          method: "DELETE",
+          headers: {
+            "Content-type": "application/json",
+            Accept: "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(
+                `Error al eliminar datoscontacto: ${response.status}`
+              );
+            }
+            return response.json();
+          })
+          .catch((error) => {
+            console.error(
+              "Error en la solicitud DELETE (datoscontacto):",
+              error
+            );
+            // Maneja errores aquí si es necesario
+          });
+        fetch(`http://localhost:3000/redsocial/${id}`, {
+          method: "DELETE",
+          headers: {
+            "Content-type": "application/json",
+            Accept: "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(
+                `Error al eliminar datoscontacto: ${response.status}`
+              );
+            }
+            return response.json();
+          })
+          .catch((error) => {
+            console.error(
+              "Error en la solicitud DELETE (datoscontacto):",
+              error
+            );
+            // Maneja errores aquí si es necesario
+          });
+        fetch(`http://localhost:3000/personascontacto/${id}`, {
+          method: "DELETE",
+          headers: {
+            "Content-type": "application/json",
+            Accept: "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(
+                `Error al eliminar datoscontacto: ${response.status}`
+              );
+            }
+            return response.json();
+          })
+          .catch((error) => {
+            console.error(
+              "Error en la solicitud DELETE (datoscontacto):",
+              error
+            );
+            // Maneja errores aquí si es necesario
+          });
       });
   };
 
@@ -872,7 +987,7 @@ function Personal() {
     {
       year: "2021 - 2022",
       title: "CIBERCOM",
-      description: "Descripción de la experiencia",
+      description: "Descripción de la educacion",
     },
   ]);
 
@@ -958,11 +1073,72 @@ function Personal() {
     }
   }, [filesContent]);
 
-  /*Datos contacto*/
+  /*Logica RH*/
 
+  const [RH, setRH] = useState({
+    Puesto: "",
+    JefeInmediato: "",
+    HorarioLaboral: {
+      HoraEntrada: "",
+      HoraSalida: "",
+      TiempoComida: "",
+      DiasTrabajados: "",
+    },
+    ExpedienteDigitalPDF: null,
+    empleadoid: id,
+  });
 
+  const { openFilePicker: openRHPicker, filesContent: RHFilesContent } =
+    useFilePicker({
+      readAs: "DataURL",
+      accept: "pdf/*",
+      validators: [new FileAmountLimitValidator({ max: 1 })],
+    });
 
-  
+  const descargarPDFRH = () => {
+    const pdfData = RH.ExpedienteDigitalPDF;
+
+    if (pdfData) {
+      const { content, name } = pdfData;
+
+      // Create a Blob from base64-encoded data
+      const byteCharacters = atob(content.split(",")[1]);
+      const byteNumbers = new Array(byteCharacters.length);
+
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: "application/pdf" });
+
+      // Create a link and simulate a click to download the file
+      const link = document.createElement("a");
+      link.href = window.URL.createObjectURL(blob);
+      link.download = name || "documento.pdf";
+      link.click();
+    }
+  };
+  const handlePDFChange = (fileContent) => {
+    // Assuming fileContent is an object with 'content' and 'name' properties
+    setRH((prev) => ({
+      ...prev,
+      ExpedienteDigitalPDF: fileContent,
+    }));
+  };
+
+  useEffect(() => {
+    console.log("RH Files Content:", RHFilesContent);
+
+    if (RHFilesContent && RHFilesContent.length > 0) {
+      const fileContent = RHFilesContent[0];
+      console.log("Selected RH File Content:", fileContent);
+
+      // Assuming you're dealing with a single file
+      handlePDFChange(fileContent);
+    }
+  }, [RHFilesContent]);
+
   //Cargar los datos en base el ID de empleado con UsePrams
   const cargarEmpleadosBD = () => {
     fetch("http://localhost:3000/empleados", {
@@ -987,14 +1163,13 @@ function Personal() {
     empleadoid: id,
   });
 
-
   const [personalcontacto, setpersonalcontacto] = useState({
     parenstesco: "",
     nombreContacto: "",
     telefonoContacto: "",
     correoContacto: "",
     direccionContacto: "",
-     empleadoid: id,
+    empleadoid: id,
   });
 
   //Get y conexiones de los datos con los Usestate
@@ -1198,28 +1373,34 @@ function Personal() {
         return response.json();
       })
       .then((json) => {
-        console.log("Respuesta completa del servidor (Datos de Contacto):", json);
-  
+        console.log(
+          "Respuesta completa del servidor (Datos de Contacto):",
+          json
+        );
+
         if (!json || !json["_id"]) {
           console.log(
             "Los datos de contacto no están en el formato esperado o no se han cargado."
           );
           return;
         }
-  
+
         const datosContactoData = json; // No es necesario tratarlo como un array
         // Actualiza el estado con los datos de contacto
         setdatoscontacto({
           telefonoF: datosContactoData.TelFijo,
           telefonoC: datosContactoData.TelCelular,
-          direccion: datosContactoData.Direccion, 
+          direccion: datosContactoData.Direccion,
           IDwhatsapp: datosContactoData.IdWhatsApp,
           IDtelegram: datosContactoData.IdTelegram,
           correo: datosContactoData.ListaCorreos,
-          empleadoid: datosContactoData.empleadoId
+          empleadoid: datosContactoData.empleadoId,
         });
-  
-        console.log("Datos de contacto mapeados a datoscontacto:", datosContactoData);
+
+        console.log(
+          "Datos de contacto mapeados a datoscontacto:",
+          datosContactoData
+        );
       })
       .catch((error) => {
         console.error("Error al cargar datos de contacto:", error);
@@ -1246,14 +1427,14 @@ function Personal() {
           "Respuesta completa del servidor (Personas de Contacto):",
           json
         );
-  
+
         if (!json || !Array.isArray(json) || json.length === 0) {
           console.log(
             "Los datos de personas de contacto no están en el formato esperado o no se han cargado."
           );
           return;
         }
-  
+
         const personasContactoData = json[0]; // Tomar el primer objeto del array
         // Actualiza el estado con los datos de personas de contacto
         setpersonalcontacto({
@@ -1264,7 +1445,7 @@ function Personal() {
           direccionContacto: personasContactoData.direccionContacto,
           empleadoid: personasContactoData.empleadoid,
         });
-  
+
         console.log(
           "Datos de personas de contacto mapeados a personalcontacto:",
           personasContactoData
@@ -1274,8 +1455,36 @@ function Personal() {
         console.error("Error al cargar personas de contacto:", error);
       });
   };
-  
-  
+  const fetchRhDataByEmpleadoId = async (empleadoId, setRH) => {
+    try {
+      const response = await fetch(`http://localhost:3000/rh/${empleadoId}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const rhData = await response.json();
+
+      // Update the state with the retrieved Rh data
+      setRH({
+        Puesto: rhData.Puesto || "",
+        JefeInmediato: rhData.JefeInmediato || "",
+        HorarioLaboral: {
+          HoraEntrada: rhData.HorarioLaboral?.HoraEntrada || "",
+          HoraSalida: rhData.HorarioLaboral?.HoraSalida || "",
+          TiempoComida: rhData.HorarioLaboral?.TiempoComida || "",
+          DiasTrabajados: rhData.HorarioLaboral?.DiasTrabajados || "",
+        },
+        ExpedienteDigitalPDF: rhData.ExpedienteDigitalPDF || null,
+        empleadoid: rhData.empleado_id || id, // Assuming you have a fallback value
+      });
+
+      console.log("Rh Data:", rhData);
+      // Handle the retrieved data here
+    } catch (error) {
+      console.error("Error fetching Rh Data:", error);
+      // Handle error here
+    }
+  };
+
   // Llamada a la función para cargar personas de contacto al iniciar la página
   useEffect(() => {
     cargarEmpleadosBD();
@@ -1284,6 +1493,7 @@ function Personal() {
     cargarExpedienteClinicoPorEmpleado(id.trim());
     cargarDatosContactoPorEmpleado(id.trim());
     cargarPersonasContactoPorEmpleado(id.trim());
+    fetchRhDataByEmpleadoId(id.trim(), setRH);
   }, [id]);
 
   //Cargar los datos antes de iniciar la pagina
@@ -1405,6 +1615,18 @@ function Personal() {
     };
 
     console.log("Datos expediente clinico", datosExpedienteClinico);
+
+    if (RHFilesContent.length > 0) {
+      const file = RHFilesContent[0];
+
+      setexpedienteclinico((prev) => ({
+        ...prev,
+        PDFSegurodegastosmedicos: {
+          name: file.name,
+          content: file.content,
+        },
+      }));
+    }
 
     const datosRedesSociales = {
       empleado_id: id.trim(),
@@ -1609,30 +1831,36 @@ function Personal() {
         IdTelegram: datoscontacto.IDtelegram,
         ListaCorreos: datoscontacto.correo,
       };
-    
+
       // Realiza una solicitud GET para verificar si ya existe un registro de datos de contacto para el empleado
-      fetch(`http://localhost:3000/datoscontacto/empleado/${datosContacto.empleado_id}`, {
-        method: 'GET',
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-        },
-      })
+      fetch(
+        `http://localhost:3000/datoscontacto/empleado/${datosContacto.empleado_id}`,
+        {
+          method: "GET",
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
+        }
+      )
         .then((response) => {
           if (response.ok) {
             // Si el empleado ya tiene un registro, realiza una solicitud PUT para actualizarlo
-            return fetch(`http://localhost:3000/datoscontacto/empleado/${datosContacto.empleado_id}`, {
-              method: 'PUT',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(datosContacto),
-            });
+            return fetch(
+              `http://localhost:3000/datoscontacto/empleado/${datosContacto.empleado_id}`,
+              {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(datosContacto),
+              }
+            );
           } else {
             // Si el empleado no tiene un registro, realiza una solicitud POST para crearlo
-            return fetch('http://localhost:3000/datoscontacto', {
-              method: 'POST',
+            return fetch("http://localhost:3000/datoscontacto", {
+              method: "POST",
               headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
               },
               body: JSON.stringify(datosContacto),
             });
@@ -1640,18 +1868,31 @@ function Personal() {
         })
         .then((responseDatosContacto) => {
           if (!responseDatosContacto.ok) {
-            throw new Error(`Error al enviar datos de contacto: ${responseDatosContacto.status}`);
+            throw new Error(
+              `Error al enviar datos de contacto: ${responseDatosContacto.status}`
+            );
           }
           return responseDatosContacto.json();
         })
         .then((dataDatosContacto) => {
-          console.log('Respuesta del servidor (Datos de Contacto):', dataDatosContacto);
+          console.log(
+            "Respuesta del servidor (Datos de Contacto):",
+            dataDatosContacto
+          );
           // Resto de tu lógica para manejar la respuesta del servidor...
         })
         .catch((error) => {
-          console.error('Error en la solicitud POST/PUT (Datos de Contacto):', error);
-          if (error instanceof TypeError && error.message === 'Failed to fetch') {
-            console.error('Posibles problemas de CORS o el servidor no está en ejecución.');
+          console.error(
+            "Error en la solicitud POST/PUT (Datos de Contacto):",
+            error
+          );
+          if (
+            error instanceof TypeError &&
+            error.message === "Failed to fetch"
+          ) {
+            console.error(
+              "Posibles problemas de CORS o el servidor no está en ejecución."
+            );
           }
         });
     };
@@ -1666,30 +1907,36 @@ function Personal() {
           empleadoid: id.trim(),
         },
       };
-    
+
       // Realiza una solicitud GET para verificar si ya existe un registro de personas de contacto para el empleado
-      fetch(`http://localhost:3000/personascontacto/empleado/${datosPersonasContacto.personalcontacto.empleadoid}`, {
-        method: 'GET',
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-        },
-      })
+      fetch(
+        `http://localhost:3000/personascontacto/empleado/${datosPersonasContacto.personalcontacto.empleadoid}`,
+        {
+          method: "GET",
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
+        }
+      )
         .then((response) => {
           if (response.ok) {
             // Si el empleado ya tiene un registro, realiza una solicitud PUT para actualizarlo
-            return fetch(`http://localhost:3000/personascontacto/empleado/${datosPersonasContacto.personalcontacto.empleadoid}`, {
-              method: 'PUT',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(datosPersonasContacto),
-            });
+            return fetch(
+              `http://localhost:3000/personascontacto/empleado/${datosPersonasContacto.personalcontacto.empleadoid}`,
+              {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(datosPersonasContacto),
+              }
+            );
           } else {
             // Si el empleado no tiene un registro, realiza una solicitud POST para crearlo
-            return fetch('http://localhost:3000/personascontacto', {
-              method: 'POST',
+            return fetch("http://localhost:3000/personascontacto", {
+              method: "POST",
               headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
               },
               body: JSON.stringify(datosPersonasContacto),
             });
@@ -1697,28 +1944,107 @@ function Personal() {
         })
         .then((responsePersonasContacto) => {
           if (!responsePersonasContacto.ok) {
-            throw new Error(`Error al enviar datos de personas de contacto: ${responsePersonasContacto.status}`);
+            throw new Error(
+              `Error al enviar datos de personas de contacto: ${responsePersonasContacto.status}`
+            );
           }
           return responsePersonasContacto.json();
         })
         .then((dataPersonasContacto) => {
-          console.log('Respuesta del servidor (Personas de Contacto):', dataPersonasContacto);
+          console.log(
+            "Respuesta del servidor (Personas de Contacto):",
+            dataPersonasContacto
+          );
           // Resto de tu lógica para manejar la respuesta del servidor...
         })
         .catch((error) => {
-          console.error('Error en la solicitud POST/PUT (Personas de Contacto):', error);
-          if (error instanceof TypeError && error.message === 'Failed to fetch') {
-            console.error('Posibles problemas de CORS o el servidor no está en ejecución.');
+          console.error(
+            "Error en la solicitud POST/PUT (Personas de Contacto):",
+            error
+          );
+          if (
+            error instanceof TypeError &&
+            error.message === "Failed to fetch"
+          ) {
+            console.error(
+              "Posibles problemas de CORS o el servidor no está en ejecución."
+            );
           }
         });
     };
-    
-    // Llamada a la función handlePersonasContacto
+
+    const handleRHData = () => {
+      const datosRH = {
+        empleado_id: id.trim(),
+        Puesto: RH.Puesto,
+        JefeInmediato: RH.JefeInmediato,
+        HorarioLaboral: {
+          HoraEntrada: RH.HorarioLaboral.HoraEntrada,
+          HoraSalida: RH.HorarioLaboral.HoraSalida,
+          TiempoComida: RH.HorarioLaboral.TiempoComida,
+          DiasTrabajados: RH.HorarioLaboral.DiasTrabajados,
+        },
+        ExpedienteDigitalPDF: RH.ExpedienteDigitalPDF,
+      };
+      console.log("Importante", datosRH);
+
+      // Realiza una solicitud GET para verificar si ya existe un registro RH para el empleado
+      fetch(`http://localhost:3000/rh/${id}`, {
+        method: "GET",
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+        },
+      })
+        .then((response) => {
+          if (response.ok) {
+            // Si el empleado ya tiene un registro RH, realiza una solicitud PUT
+            return fetch(`http://localhost:3000/rh/${id}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(datosRH),
+            });
+          } else {
+            // Si el empleado no tiene un registro RH, realiza una solicitud POST
+            return fetch("http://localhost:3000/rh", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(datosRH),
+            });
+          }
+        })
+        .then((responseRH) => {
+          if (!responseRH.ok) {
+            throw new Error(`Error al enviar datos RH: ${responseRH.status}`);
+          }
+          return responseRH.json();
+        })
+        .then((dataRH) => {
+          console.log("Respuesta del servidor RH:", dataRH);
+          // Resto de tu lógica para manejar la respuesta del servidor RH...
+        })
+        .catch((error) => {
+          console.error("Error en la solicitud POST/PUT RH:", error);
+          if (
+            error instanceof TypeError &&
+            error.message === "Failed to fetch"
+          ) {
+            console.error(
+              "Posibles problemas de CORS o el servidor no está en ejecución."
+            );
+          }
+        });
+    };
+
+    // Llamada a la función
+    handleRHData();
+
     handlePersonasContacto();
-    
-    
+
     handleUpdateDatosContacto();
-    
 
     handleRedesSociales();
 
@@ -1726,8 +2052,6 @@ function Personal() {
 
     handleExpedienteClinico();
   };
-
-
 
   /*Evento para establecer parrafos*/
 
@@ -1747,8 +2071,6 @@ function Personal() {
 
   /*Editar educacion, experiencia y habilidades*/
 
-
-  
   const handleEditEducationYear = (event, index) => {
     const updatedEducationItems = [...educationItems];
     updatedEducationItems[index].year = event.target.value;
@@ -1836,6 +2158,24 @@ function Personal() {
     }));
   };
 
+  /*Atualizar RH*/
+
+  const handleRHChange = (property, value) => {
+    setRH((prevRH) => {
+      const updatedRH = { ...prevRH };
+      const properties = property.split(".");
+      let currentObj = updatedRH;
+
+      for (let i = 0; i < properties.length - 1; i++) {
+        currentObj = currentObj[properties[i]];
+      }
+
+      currentObj[properties[properties.length - 1]] = value;
+
+      return updatedRH;
+    });
+  };
+
   //Renderizado de agregar educacion y experiencia
   const renderDescription = () => {
     if (Educacion.Descripcion) {
@@ -1843,7 +2183,7 @@ function Personal() {
         <div className="info-desc">
           {isEditing ? (
             <TextareaAutosize
-              value={descripcion}
+              value={Educacion.Descripcion}
               onChange={handleInputChange}
               className="EditarPersonal"
             />
@@ -2142,8 +2482,6 @@ function Personal() {
           ) : (
             <div className="redes-sociales-cont">
               {redesSociales.map((redSocial, index) => (
-                
-                
                 <a
                   key={index}
                   href={`https://${redSocial.URLRedSocial}`}
@@ -2171,7 +2509,6 @@ function Personal() {
                     </div>
                   </div>
                 </a>
-              
               ))}
             </div>
           )}
@@ -2192,124 +2529,82 @@ function Personal() {
                 <input
                   type="text"
                   value={datoscontacto.telefonoF}
-                  onChange={(e) => handleInputChangedatoscontacto("telefonoF", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChangedatoscontacto("telefonoF", e.target.value)
+                  }
                   className="EditarEducacion"
+                  maxLength={11}
+                  onKeyPress={(e) => {
+                    if (isNaN(Number(e.key))) {
+                      e.preventDefault();
+                    }
+                  }}
                 />
               ) : (
                 <p>{datoscontacto.telefonoF}</p>
               )}
-  
+
               <label>Teléfono Celular (Obligatorio):</label>
               {isEditing ? (
                 <input
                   type="text"
                   value={datoscontacto.telefonoC}
-                  onChange={(e) => handleInputChangedatoscontacto("telefonoC", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChangedatoscontacto("telefonoC", e.target.value)
+                  }
                   className="EditarEducacion"
+                  maxLength={11}
+                  onKeyPress={(e) => {
+                    if (isNaN(Number(e.key))) {
+                      e.preventDefault();
+                    }
+                  }}
                 />
               ) : (
                 <p>{datoscontacto.telefonoC}</p>
               )}
-  
+
               <label>ID de WhatsApp:</label>
               {isEditing ? (
                 <input
                   type="text"
                   value={datoscontacto.IDwhatsapp}
-                  onChange={(e) => handleInputChangedatoscontacto("IDwhatsapp", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChangedatoscontacto("IDwhatsapp", e.target.value)
+                  }
                   className="EditarEducacion"
                 />
               ) : (
                 <p>{datoscontacto.IDwhatsapp}</p>
               )}
-  
+
               <label>ID de Telegram:</label>
               {isEditing ? (
                 <input
                   type="text"
                   value={datoscontacto.IDtelegram}
-                  onChange={(e) => handleInputChangedatoscontacto("IDtelegram", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChangedatoscontacto("IDtelegram", e.target.value)
+                  }
                   className="EditarEducacion"
                 />
               ) : (
                 <p>{datoscontacto.IDtelegram}</p>
               )}
-  
+
               <label>Correo:</label>
               {isEditing ? (
                 <input
                   type="text"
                   value={datoscontacto.correo}
-                  onChange={(e) => handleInputChangedatoscontacto("correo", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChangedatoscontacto("correo", e.target.value)
+                  }
                   className="EditarEducacion"
                 />
               ) : (
                 <p>{datoscontacto.correo}</p>
               )}
-  
-              <div className="personasContacto">
-                <h3>Personas de Contacto</h3>
-  
-                <label>Nombre de Contacto:</label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={personalcontacto.nombreContacto}
-                    onChange={(e) => handlePersonalContactoChange("nombreContacto", e.target.value)}
-                    className="EditarEducacion"
-                  />
-                ) : (
-                  <p>{personalcontacto.nombreContacto}</p>
-                )}
-  
-                <label>Parentesco:</label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={personalcontacto.parenstesco}
-                    onChange={(e) => handlePersonalContactoChange("parenstesco", e.target.value)}
-                    className="EditarEducacion"
-                  />
-                ) : (
-                  <p>{personalcontacto.parenstesco}</p>
-                )}
-  
-                <label>Número de Teléfono:</label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={personalcontacto.telefonoContacto}
-                    onChange={(e) => handlePersonalContactoChange("telefonoContacto", e.target.value)}
-                    className="EditarEducacion"
-                  />
-                ) : (
-                  <p>{personalcontacto.telefonoContacto}</p>
-                )}
-  
-                <label>Correo del Contacto:</label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={personalcontacto.correoContacto}
-                    onChange={(e) => handlePersonalContactoChange("correoContacto", e.target.value)}
-                    className="EditarEducacion"
-                  />
-                ) : (
-                  <p>{personalcontacto.correoContacto}</p>
-                )}
-  
-                <label>Dirección del Contacto:</label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={personalcontacto.direccionContacto}
-                    onChange={(e) => handlePersonalContactoChange("direccionContacto", e.target.value)}
-                    className="EditarEducacion"
-                  />
-                ) : (
-                  <p>{personalcontacto.direccionContacto}</p>
-                )}
-              </div>
             </div>
           </div>
         </div>
@@ -2329,42 +2624,121 @@ function Personal() {
               {isEditing ? (
                 <input
                   type="text"
-                  
+                  value={RH.Puesto}
+                  onChange={(e) => handleRHChange("Puesto", e.target.value)}
                 />
               ) : (
-                <p></p>
+                <p>{RH.Puesto}</p>
               )}
-  
+
               <label>Jefe Inmediato</label>
               {isEditing ? (
                 <input
                   type="text"
-                  
+                  value={RH.JefeInmediato}
+                  onChange={(e) =>
+                    handleRHChange("JefeInmediato", e.target.value)
+                  }
                 />
               ) : (
-                <p></p>
-              )}
-  
-              <label>Horario Laboral</label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  
-                />
-              ) : (
-                <p></p>
-              )}
-  
-              <label>Zona Horaria</label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  
-                />
-              ) : (
-                <p></p>
+                <p>{RH.JefeInmediato}</p>
               )}
 
+              <label> Hora de Entrada</label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={RH.HorarioLaboral.HoraEntrada}
+                  onChange={(e) =>
+                    handleRHChange("HorarioLaboral.HoraEntrada", e.target.value)
+                  }
+                />
+              ) : (
+                <p>{RH.HorarioLaboral.HoraEntrada}</p>
+              )}
+
+              <label>Horario Laboral - Hora de Salida</label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={RH.HorarioLaboral.HoraSalida}
+                  onChange={(e) =>
+                    handleRHChange("HorarioLaboral.HoraSalida", e.target.value)
+                  }
+                />
+              ) : (
+                <p>{RH.HorarioLaboral.HoraSalida}</p>
+              )}
+
+              <label>Horario Laboral - Tiempo de Comida</label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={RH.HorarioLaboral.TiempoComida}
+                  onChange={(e) =>
+                    handleRHChange(
+                      "HorarioLaboral.TiempoComida",
+                      e.target.value
+                    )
+                  }
+                />
+              ) : (
+                <p>{RH.HorarioLaboral.TiempoComida}</p>
+              )}
+
+              <label>Horario Laboral - Días Trabajados</label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={RH.HorarioLaboral.DiasTrabajados}
+                  onChange={(e) =>
+                    handleRHChange(
+                      "HorarioLaboral.DiasTrabajados",
+                      e.target.value
+                    )
+                  }
+                />
+              ) : (
+                <p>{RH.HorarioLaboral.DiasTrabajados}</p>
+              )}
+              {isEditing ? (
+                <div>
+                  <button onClick={openRHPicker}>
+                    Seleccionar Archivo PDF (RH)
+                  </button>
+
+                  {RHFilesContent.map((file, index) => (
+                    <div key={index}>
+                      <p>{file.name}</p>
+                      <img
+                        style={{
+                          width: 200,
+                          height: 200,
+                          marginTop: 10,
+                        }}
+                        alt={file.name}
+                        src={file.content}
+                      ></img>
+                      <br />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                // If not editing, display RH information
+                <div className="RH-section">
+                  <h3>Información de Recursos Humanos (RH)</h3>
+                  <div>
+                    {RH.ExpedienteDigitalPDF && (
+                      <>
+                        <p>
+                          Nombre del PDF: {RH.ExpedienteDigitalPDF[0]?.name}
+                        </p>
+                        <button onClick={descargarPDFRH}>Descargar PDF</button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -2372,7 +2746,89 @@ function Personal() {
     );
   };
 
-  
+  /*Render Personas contacto*/
+  const renderPersonasContactoContent = () => {
+    return (
+      <div className="personasContacto-content">
+        <label>Nombre de Contacto:</label>
+        {isEditing ? (
+          <input
+            type="text"
+            value={personalcontacto.nombreContacto}
+            onChange={(e) =>
+              handlePersonalContactoChange("nombreContacto", e.target.value)
+            }
+            className="EditarEducacion"
+          />
+        ) : (
+          <p>{personalcontacto.nombreContacto}</p>
+        )}
+
+        <label>Parentesco:</label>
+        {isEditing ? (
+          <input
+            type="text"
+            value={personalcontacto.parenstesco}
+            onChange={(e) =>
+              handlePersonalContactoChange("parenstesco", e.target.value)
+            }
+            className="EditarEducacion"
+          />
+        ) : (
+          <p>{personalcontacto.parenstesco}</p>
+        )}
+
+        <label>Número de Teléfono:</label>
+        {isEditing ? (
+          <input
+            type="text"
+            value={personalcontacto.telefonoContacto}
+            onChange={(e) =>
+              handlePersonalContactoChange("telefonoContacto", e.target.value)
+            }
+            className="EditarEducacion"
+            maxLength={11}
+            onKeyPress={(e) => {
+              if (isNaN(Number(e.key))) {
+                e.preventDefault();
+              }
+            }}
+          />
+        ) : (
+          <p>{personalcontacto.telefonoContacto}</p>
+        )}
+
+        <label>Correo del Contacto:</label>
+        {isEditing ? (
+          <input
+            type="text"
+            value={personalcontacto.correoContacto}
+            onChange={(e) =>
+              handlePersonalContactoChange("correoContacto", e.target.value)
+            }
+            className="EditarEducacion"
+          />
+        ) : (
+          <p>{personalcontacto.correoContacto}</p>
+        )}
+
+        <label>Dirección del Contacto:</label>
+        {isEditing ? (
+          <input
+            type="text"
+            value={personalcontacto.direccionContacto}
+            onChange={(e) =>
+              handlePersonalContactoChange("direccionContacto", e.target.value)
+            }
+            className="EditarEducacion"
+          />
+        ) : (
+          <p>{personalcontacto.direccionContacto}</p>
+        )}
+      </div>
+    );
+  };
+
   // Resto de tu código para mostrar el empleado
 
   return (
@@ -2400,95 +2856,101 @@ function Personal() {
               <div className="info-containter">
                 {renderInfoPersonalSection()}
               </div>
+              <div className="personasContacto">
+                <h3>Personas de Contacto</h3>
+                {renderPersonasContactoContent()}
+              </div>
               <div className="redes-sociales-containter">
                 {renderRedesSociales()}
               </div>
               <div className="expediente-clinico">
-                
-                    {isEditing ? (
-                      <div>
-                        <select
-                          id="tipoSangre"
-                          value={expedienteclinico.tipoSangre}
-                          onChange={handleEditTipoSangre}
-                        >
-                          <option value="">Selecciona el tipo de sangre</option>
-                          {opcionesTipoSangre.map((tipo) => (
-                            <option key={tipo} value={tipo}>
-                              {tipo}
-                            </option>
-                          ))}
-                        </select>
-                        <TextareaAutosize
-                          value={expedienteclinico.Padecimientos}
-                          onChange={handleEditPadecimientos}
-                          className="EditarPersonal"
-                          placeholder="Padecimientos"
-                        />
-                        <TextareaAutosize
-                          value={expedienteclinico.NumeroSeguroSocial}
-                          onChange={handleEditNumeroSeguroSocial}
-                          className="EditarPersonal"
-                          placeholder="Numero del seguro social"
-                        />
-                        <TextareaAutosize
-                          value={expedienteclinico.Datossegurodegastos}
-                          onChange={handleEditsegurodegastos}
-                          className="EditarPersonal"
-                          placeholder="Numero del seguro social"
-                        />
-                        <div>
-                          <button onClick={openFilePicker}>
-                            Seleccionar Archivo PDF
-                          </button>
+                {isEditing ? (
+                  <div>
+                    <select
+                      id="tipoSangre"
+                      value={expedienteclinico.tipoSangre}
+                      onChange={handleEditTipoSangre}
+                    >
+                      <option value="">Selecciona el tipo de sangre</option>
+                      {opcionesTipoSangre.map((tipo) => (
+                        <option key={tipo} value={tipo}>
+                          {tipo}
+                        </option>
+                      ))}
+                    </select>
+                    <TextareaAutosize
+                      value={expedienteclinico.Padecimientos}
+                      onChange={handleEditPadecimientos}
+                      className="EditarPersonal"
+                      placeholder="Padecimientos"
+                    />
+                    <TextareaAutosize
+                      value={expedienteclinico.NumeroSeguroSocial}
+                      onChange={handleEditNumeroSeguroSocial}
+                      onKeyPress={(e) => {
+                        if (isNaN(Number(e.key))) {
+                          e.preventDefault();
+                        }
+                      }}
+                      className="EditarPersonal"
+                      placeholder="Numero del seguro social"
+                      maxLength={11}
+                    />
+                    <TextareaAutosize
+                      value={expedienteclinico.Datossegurodegastos}
+                      onChange={handleEditsegurodegastos}
+                      className="EditarPersonal"
+                      placeholder="Seguro de gastos medicos mayores"
+                    />
+                    <div>
+                      <button onClick={openFilePicker}>
+                        Seleccionar Archivo PDF
+                      </button>
 
-                          {selectedFiles.map((file, index) => (
-                            <div key={index}>
-                              <p>{file.name}</p>
-                              <img
-                                style={{
-                                  width: 200,
-                                  height: 200,
-                                  marginTop: 10,
-                                }}
-                                alt={file.name}
-                                src={file.content}
-                              ></img>
-                              <br />
-                            </div>
-                          ))}
+                      {selectedFiles.map((file, index) => (
+                        <div key={index}>
+                          <p>{file.name}</p>
+                          <img
+                            style={{
+                              width: 200,
+                              height: 200,
+                              marginTop: 10,
+                            }}
+                            alt={file.name}
+                            src={file.content}
+                          ></img>
+                          <br />
                         </div>
-                      </div>
-                    ) : (
-                      // Si no está editando, solo muestra el nombre del archivo PDF
-                      <div className="expediente-clinico">
-                        <h3>Expediente Clínico</h3>
-                         <div className="expediente-clinico-content"> 
-                        <p>{expedienteclinico.tipoSangre}</p>
-                        <p>{expedienteclinico.Padecimientos}</p>
-                        <p>{expedienteclinico.NumeroSeguroSocial}</p>
-                        <p>{expedienteclinico.Datossegurodegastos}</p>
-                        </div>
-                        <div>
-                          {expedienteclinico.PDFSegurodegastosmedicos && (
-                            <>
-                              <p>
-                                Nombre del PDF:{" "}
-                                {
-                                  expedienteclinico.PDFSegurodegastosmedicos[0]
-                                    ?.name
-                                }
-                              </p>
-                              <button onClick={descargarPDF}>
-                                Descargar PDF
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    )}
+                      ))}
+                    </div>
                   </div>
-              
+                ) : (
+                  // Si no está editando, solo muestra el nombre del archivo PDF
+                  <div className="expediente-clinico">
+                    <h3>Expediente Clínico</h3>
+                    <div className="expediente-clinico-content">
+                      <p>{expedienteclinico.tipoSangre}</p>
+                      <p>{expedienteclinico.Padecimientos}</p>
+                      <p>{expedienteclinico.NumeroSeguroSocial}</p>
+                      <p>{expedienteclinico.Datossegurodegastos}</p>
+                    </div>
+                    <div>
+                      {expedienteclinico.PDFSegurodegastosmedicos && (
+                        <>
+                          <p>
+                            Nombre del PDF:{" "}
+                            {
+                              expedienteclinico.PDFSegurodegastosmedicos[0]
+                                ?.name
+                            }
+                          </p>
+                          <button onClick={descargarPDF}>Descargar PDF</button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="right-column">
               <div className="content">
@@ -2513,15 +2975,11 @@ function Personal() {
                 </p>
 
                 <div className="RH">
-                <h3>Recursos Humanos</h3>
-                <div className="RH-info">
-                  {renderRHSection()}                  
+                  <h3>Recursos Humanos</h3>
+                  <div className="RH-info">{renderRHSection()}</div>
                 </div>
-              </div>
 
-                <p>
-                  
-                </p>
+                <p></p>
 
                 <div>
                   {isEditing ? (
