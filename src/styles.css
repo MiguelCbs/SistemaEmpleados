@@ -629,6 +629,17 @@ span {
 }
 
 
+.RH-archivo p{
+  font-size: 15px;
+  border-radius: 20px;
+  font-weight: bold;
+  border: 0.2rem solid var(--main-color);
+  padding: 5px;
+  margin-bottom: auto;
+}
+
+
+
 .skills {
   min-height: auto;
   padding-bottom: 7rem;
@@ -1960,6 +1971,17 @@ input[type='number']::-webkit-outer-spin-button {
     
 }
 
+.expediente-clinico h2{
+  display: flex;
+  margin-top: 15px;
+  margin-bottom: 15px;
+  padding: 15px;
+}
+
+.expediente-clinico img{
+  visibility: hidden;
+}
+
 .expediente-clinico select{
   appearance: none;
   margin-top: 15px;
@@ -1968,12 +1990,13 @@ input[type='number']::-webkit-outer-spin-button {
   -moz-appearance: none;
   width: 100%;
   padding: 10px;
-  border: 1px solid #02a2e7;
+  border: 2px solid #02a2e7;
   color: #ffffff;
   border-radius: 5px;
   background-color: #081b29;
   cursor: pointer;
   outline: none;
+  max-width: 90%;
 }
 
 .expediente-clinico button{
@@ -2014,6 +2037,61 @@ input[type='number']::-webkit-outer-spin-button {
   font-weight: bold;
   font-size: 20px;
   border-radius: 5px;
+}
+
+.expediente-clinico-archivo p{
+  font-size: 15px;
+  border-radius: 20px;
+  font-weight: bold;
+  border: 0.2rem solid var(--main-color);
+  padding: 5px;
+  margin-bottom: auto;
+}
+
+.RH-archivo button{
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 30rem;
+  height: 5%;
+  background: var(--main-color);
+  border: 0.2rem solid var(--main-color);
+  border-radius: 0.8rem;
+  font-size: 1.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1rem;
+  color: var(--bg-color);
+  z-index: 1;
+  overflow: hidden;
+  transition: 0.5s;
+  margin-left: 19px;
+  margin-top: 20px;
+}
+
+.rh-select-archivo button{
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 30rem;
+  height: 5%;
+  background: var(--main-color);
+  border: 0.2rem solid var(--main-color);
+  border-radius: 0.8rem;
+  font-size: 1.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1rem;
+  color: var(--bg-color);
+  z-index: 1;
+  overflow: hidden;
+  transition: 0.5s;
+  margin-left: 19px;
+  margin-top: 15px ;
+}
+
+.rh-select-archivo img{
+  visibility: hidden;
 }
 
 .RH-content .content{

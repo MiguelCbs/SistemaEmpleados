@@ -645,14 +645,14 @@ function Empleados() {
           .then((response) => {
             if (!response.ok) {
               throw new Error(
-                `Error al eliminar datoscontacto: ${response.status}`
+                `Error al eliminar expedienteclinico: ${response.status}`
               );
             }
             return response.json();
           })
           .catch((error) => {
             console.error(
-              "Error en la solicitud DELETE (datoscontacto):",
+              "Error en la solicitud DELETE (expedienteclinico):",
               error
             );
             // Maneja errores aquí si es necesario
@@ -668,14 +668,14 @@ function Empleados() {
           .then((response) => {
             if (!response.ok) {
               throw new Error(
-                `Error al eliminar datoscontacto: ${response.status}`
+                `Error al eliminar educacion: ${response.status}`
               );
             }
             return response.json();
           })
           .catch((error) => {
             console.error(
-              "Error en la solicitud DELETE (datoscontacto):",
+              "Error en la solicitud DELETE (educacion):",
               error
             );
             // Maneja errores aquí si es necesario
@@ -691,14 +691,14 @@ function Empleados() {
           .then((response) => {
             if (!response.ok) {
               throw new Error(
-                `Error al eliminar datoscontacto: ${response.status}`
+                `Error al eliminar redsocial: ${response.status}`
               );
             }
             return response.json();
           })
           .catch((error) => {
             console.error(
-              "Error en la solicitud DELETE (datoscontacto):",
+              "Error en la solicitud DELETE (redsocial):",
               error
             );
             // Maneja errores aquí si es necesario
@@ -714,14 +714,37 @@ function Empleados() {
           .then((response) => {
             if (!response.ok) {
               throw new Error(
-                `Error al eliminar datoscontacto: ${response.status}`
+                `Error al eliminar personascontacto: ${response.status}`
               );
             }
             return response.json();
           })
           .catch((error) => {
             console.error(
-              "Error en la solicitud DELETE (datoscontacto):",
+              "Error en la solicitud DELETE (personascontacto):",
+              error
+            );
+            // Maneja errores aquí si es necesario
+          });
+          fetch(`http://localhost:3000/rh/${id}`, {
+          method: "DELETE",
+          headers: {
+            "Content-type": "application/json",
+            Accept: "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(
+                `Error al eliminar RH: ${response.status}`
+              );
+            }
+            return response.json();
+          })
+          .catch((error) => {
+            console.error(
+              "Error en la solicitud DELETE (RH):",
               error
             );
             // Maneja errores aquí si es necesario
@@ -1088,6 +1111,8 @@ function Personal() {
     empleadoid: id,
   });
 
+
+
   const { openFilePicker: openRHPicker, filesContent: RHFilesContent } =
     useFilePicker({
       readAs: "DataURL",
@@ -1235,6 +1260,7 @@ function Personal() {
             console.error("Error al mapear los datos de experiencia:", error);
           }
         }
+        
         if (
           !json ||
           !json.Habilidades ||
@@ -1262,7 +1288,13 @@ function Personal() {
             console.error("Error al mapear los datos de habilidades:", error);
           }
         }
-      })
+        if (json && json.Descripcion) {
+          setDescripcion(json.Descripcion);
+          console.log("Descripción cargada:", json.Descripcion);
+        } else {
+          console.log("La descripción no está en el formato esperado o no se ha cargado.");
+        }
+      }) 
       .catch((error) => {
         console.error("Error al cargar educación:", error);
       });
@@ -2056,6 +2088,7 @@ function Personal() {
   /*Evento para establecer parrafos*/
 
   const handleInputChange = (event) => {
+ 
     setDescripcion(event.target.value);
   };
   const handleAddSocial = () => {
@@ -2071,6 +2104,8 @@ function Personal() {
 
   /*Editar educacion, experiencia y habilidades*/
 
+
+  
   const handleEditEducationYear = (event, index) => {
     const updatedEducationItems = [...educationItems];
     updatedEducationItems[index].year = event.target.value;
@@ -2178,27 +2213,12 @@ function Personal() {
 
   //Renderizado de agregar educacion y experiencia
   const renderDescription = () => {
-    if (Educacion.Descripcion) {
-      return (
-        <div className="info-desc">
-          {isEditing ? (
-            <TextareaAutosize
-              value={Educacion.Descripcion}
-              onChange={handleInputChange}
-              className="EditarPersonal"
-            />
-          ) : (
-            <p>{Educacion.Descripcion}</p>
-          )}
-        </div>
-      );
-    } else {
       return (
         <div>
           {isEditing ? (
             <TextareaAutosize
               value={descripcion}
-              onChange={handleInputChange}
+              onChange={(event) => setDescripcion(event.target.value)} // Update the descripcion state
               className="EditarPersonal"
             />
           ) : (
@@ -2206,9 +2226,9 @@ function Personal() {
           )}
         </div>
       );
-    }
+ 
   };
-
+  
   //Reenderiza educacion
 
   const renderEducationSection = () => {
@@ -2644,7 +2664,7 @@ function Personal() {
                 <p>{RH.JefeInmediato}</p>
               )}
 
-              <label> Hora de Entrada</label>
+              <label>Hora de Entrada</label>
               {isEditing ? (
                 <input
                   type="text"
@@ -2670,7 +2690,7 @@ function Personal() {
                 <p>{RH.HorarioLaboral.HoraSalida}</p>
               )}
 
-              <label>Horario Laboral - Tiempo de Comida</label>
+              <label>Tiempo de Comida</label>
               {isEditing ? (
                 <input
                   type="text"
@@ -2686,7 +2706,7 @@ function Personal() {
                 <p>{RH.HorarioLaboral.TiempoComida}</p>
               )}
 
-              <label>Horario Laboral - Días Trabajados</label>
+              <label>Días Trabajados</label>
               {isEditing ? (
                 <input
                   type="text"
@@ -2702,7 +2722,7 @@ function Personal() {
                 <p>{RH.HorarioLaboral.DiasTrabajados}</p>
               )}
               {isEditing ? (
-                <div>
+              <div className="rh-select-archivo">
                   <button onClick={openRHPicker}>
                     Seleccionar Archivo PDF (RH)
                   </button>
@@ -2726,18 +2746,20 @@ function Personal() {
               ) : (
                 // If not editing, display RH information
                 <div className="RH-section">
-                  <h3>Información de Recursos Humanos (RH)</h3>
-                  <div>
-                    {RH.ExpedienteDigitalPDF && (
-                      <>
-                        <p>
-                          Nombre del PDF: {RH.ExpedienteDigitalPDF[0]?.name}
-                        </p>
-                        <button onClick={descargarPDFRH}>Descargar PDF</button>
-                      </>
-                    )}
-                  </div>
+                  
+                  
                 </div>
+              )}
+            </div>
+
+            <div className="RH-archivo">
+              {RH.ExpedienteDigitalPDF && (
+                <>
+                  <p>
+                    Nombre del PDF: {RH.ExpedienteDigitalPDF.name}
+                  </p>
+                  <button onClick={descargarPDFRH}>Descargar PDF</button>
+                </>
               )}
             </div>
           </div>
@@ -2866,6 +2888,8 @@ function Personal() {
               <div className="expediente-clinico">
                 {isEditing ? (
                   <div>
+                     <h3>Expediente Clínico</h3>
+                    <h2>Tipo de Sangre</h2>
                     <select
                       id="tipoSangre"
                       value={expedienteclinico.tipoSangre}
