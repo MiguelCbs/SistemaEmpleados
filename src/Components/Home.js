@@ -3,7 +3,7 @@ import "../styles.css";
 import {Link} from "react-router-dom";
 import "react-datepicker/dist/react-datepicker.css";
 
-const apiurl = "http://localhost:3000";
+const apiurl = "http://191.96.145.59:8000";
 
 function Home({ currentRotation, handlePrevClick, handleNextClick, images }) {
     const [empleados, setEmpleados] = useState([]);

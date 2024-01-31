@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import "../styles.css";
 import Tree from "react-d3-tree";
 
-const apiurl = "http://localhost:3000";
+const apiurl = "http://191.96.145.59:8000";
 
 function Organigrama() {
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);

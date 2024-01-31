@@ -8,7 +8,7 @@ import { useParams } from "react-router-dom";
 import TextareaAutosize from "react-textarea-autosize";
 import { FileAmountLimitValidator } from "use-file-picker/validators";
 
-const apiurl = "http://localhost:3000";
+const apiurl = "http://191.96.145.59:8000";
 
 function Personal() {
   const { id } = useParams();
@@ -1999,6 +1999,109 @@ function Personal() {
     );
   };
 
+  const renderExpedienteClinicoSection = () => {
+    return (
+      <div className="expediente-clinico">
+        <h3>Expediente Clínico</h3>
+        {isEditing ? (
+          <div className="content">
+            <label>Tipo de Sangre:</label>
+            <select
+              id="tipoSangre"
+              value={expedienteclinico.tipoSangre}
+              onChange={handleEditTipoSangre}
+            >
+              <option value="">Selecciona el tipo de sangre</option>
+              {opcionesTipoSangre.map((tipo) => (
+                <option key={tipo} value={tipo}>
+                  {tipo}
+                </option>
+              ))}
+            </select>
+  
+            <label>Padecimientos:</label>
+            <TextareaAutosize
+              value={expedienteclinico.Padecimientos}
+              onChange={handleEditPadecimientos}
+              className="EditarPersonal"
+              placeholder="Padecimientos"
+            />
+  
+            <label>Numero del seguro social:</label>
+            <input
+              type="text"
+              value={expedienteclinico.NumeroSeguroSocial}
+              onChange={handleEditNumeroSeguroSocial}
+              onKeyPress={(e) => {
+                if (isNaN(Number(e.key))) {
+                  e.preventDefault();
+                }
+              }}
+              className="EditarPersonal"
+              placeholder="Numero del seguro social"
+              maxLength={11}
+            />
+  
+            <label>Datos del seguro de gastos medicos:</label>
+            <TextareaAutosize
+              value={expedienteclinico.Datossegurodegastos}
+              onChange={handleEditsegurodegastos}
+              className="EditarPersonal"
+              placeholder="Seguro de gastos medicos mayores"
+            />
+  
+            <div className="rh-select-archivo">
+              <button onClick={openFilePicker}>
+                Seleccionar Archivo PDF
+              </button>
+              {selectedFiles.map((file, index) => (
+                <div key={index}>
+                  <p>{file.name}</p>
+                  <img
+                    style={{
+                      width: 200,
+                      height: 200,
+                      marginTop: 10,
+                    }}
+                    alt={file.name}
+                    src={file.content}
+                  ></img>
+                  <br />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="expediente-clinico-content">
+            <label>Tipo de Sangre:</label>
+            <p>{expedienteclinico.tipoSangre}</p>
+  
+            <label>Padecimientos:</label>
+            <p>{expedienteclinico.Padecimientos}</p>
+  
+            <label>Numero del seguro social:</label>
+            <p>{expedienteclinico.NumeroSeguroSocial}</p>
+  
+            <label>Datos del seguro de gastos medicos:</label>
+            <p>{expedienteclinico.Datossegurodegastos}</p>
+  
+          </div>
+        )}
+        <div className="Expedienteclinico-archivo">
+          {expedienteclinico.PDFSegurodegastosmedicos && (
+            <>
+              <p>
+                Nombre del PDF:
+                {expedienteclinico.PDFSegurodegastosmedicos.name}
+              </p>
+              <button onClick={descargarPDF}>Descargar PDF</button>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   // Resto de tu código para mostrar el empleado
 
   return (
@@ -2034,97 +2137,7 @@ function Personal() {
                 {renderRedesSociales()}
               </div>
               <div className="expediente-clinico">
-                <h3>Expediente Clínico</h3>
-                {isEditing ? (
-                  <div class="content">
-                    <label>Tipo de Sangre:</label>
-                    <select
-                      id="tipoSangre"
-                      value={expedienteclinico.tipoSangre}
-                      onChange={handleEditTipoSangre}
-                    >
-                      <option value="">Selecciona el tipo de sangre</option>
-                      {opcionesTipoSangre.map((tipo) => (
-                        <option key={tipo} value={tipo}>
-                          {tipo}
-                        </option>
-                      ))}
-                    </select>
-                    <label>Padecimientos:</label>
-                    <TextareaAutosize
-                      value={expedienteclinico.Padecimientos}
-                      onChange={handleEditPadecimientos}
-                      className="EditarPersonal"
-                      placeholder="Padecimientos"
-                    />
-                    <label>Numero del seguro social:</label>
-                    <TextareaAutosize
-                      value={expedienteclinico.NumeroSeguroSocial}
-                      onChange={handleEditNumeroSeguroSocial}
-                      onKeyPress={(e) => {
-                        if (isNaN(Number(e.key))) {
-                          e.preventDefault();
-                        }
-                      }}
-                      className="EditarPersonal"
-                      placeholder="Numero del seguro social"
-                      maxLength={11}
-                    />
-                    <label>Datos del seguro de gastos medicos:</label>
-                    <TextareaAutosize
-                      value={expedienteclinico.Datossegurodegastos}
-                      onChange={handleEditsegurodegastos}
-                      className="EditarPersonal"
-                      placeholder="Seguro de gastos medicos mayores"
-                    />
-                    <div>
-                      <button onClick={openFilePicker}>
-                        Seleccionar Archivo PDF
-                      </button>
-
-                      {selectedFiles.map((file, index) => (
-                        <div key={index}>
-                          <p>{file.name}</p>
-                          <img
-                            style={{
-                              width: 200,
-                              height: 200,
-                              marginTop: 10,
-                            }}
-                            alt={file.name}
-                            src={file.content}
-                          ></img>
-                          <br />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  // Si no está editando, solo muestra el nombre del archivo PDF
-                  <div className="expediente-clinico">
-                    <div className="expediente-clinico-content">
-                      <label>Tipo de Sangre:</label>
-                      <p>{expedienteclinico.tipoSangre}</p>
-                      <label>Padecimientos:</label>
-                      <p>{expedienteclinico.Padecimientos}</p>
-                      <label>Numero del seguro social:</label>
-                      <p>{expedienteclinico.NumeroSeguroSocial}</p>
-                      <label>Datos del seguro de gastos medicos:</label>
-                      <p>{expedienteclinico.Datossegurodegastos}</p>
-                    </div>
-                    <div className="Expedienteclinico-archivo">
-                      {expedienteclinico.PDFSegurodegastosmedicos && (
-                        <>
-                          <p>
-                            Nombre del PDF:
-                            {expedienteclinico.PDFSegurodegastosmedicos.name}
-                          </p>
-                          <button onClick={descargarPDF}>Descargar PDF</button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )}
+                {renderExpedienteClinicoSection()}
               </div>
             </div>
             <div className="right-column">

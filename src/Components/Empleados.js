@@ -11,7 +11,7 @@ import {
   ImageDimensionsValidator,
 } from "use-file-picker/validators";
 
-const apiurl = "http://localhost:3000";
+const apiurl = "http://191.96.145.59:8000";
 
 function Empleados() {
     const { openFilePicker, filesContent, loading, clear } = useFilePicker({

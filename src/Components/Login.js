@@ -4,7 +4,7 @@ import "../styles.css";
 import { Modal, ModalHeader, ModalBody, ModalFooter, Table } from "reactstrap";
 import "react-datepicker/dist/react-datepicker.css";
 
-const apiurl = "http://localhost:3000";
+const apiurl = "http://191.96.145.59:8000";
 
 function Login(props) {
   const [user, setUser] = useState("");
