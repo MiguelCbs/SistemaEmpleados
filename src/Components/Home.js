@@ -8,7 +8,6 @@ const apiurl = "http://localhost:3000";
 function Home({ currentRotation, handlePrevClick, handleNextClick, images }) {
     const [empleados, setEmpleados] = useState([]);
     const [datosCargados, setDatosCargados] = useState(false);
-    
     const menuIcon = document.querySelector("#menu-icon");
     const navbar = document.querySelector(".navbar");
   
@@ -48,7 +47,8 @@ function Home({ currentRotation, handlePrevClick, handleNextClick, images }) {
       fetch(`${apiurl}/empleados`, {
         method: "get",
         headers: {
-          "Access-Control-Allow-Origin": "*",
+          "Content-Type": "application/json",
+          "Accept": "application/json"
         },
       })
         .then((response) => {
@@ -93,7 +93,7 @@ function Home({ currentRotation, handlePrevClick, handleNextClick, images }) {
                     }deg) translateZ(300px)`,
                   }}
                 >
-                  <img src={empleado.Fotografia} alt={` ${index + 1}`} />
+                  <img src={empleado.Fotografias[0]} alt={`Image ${index + 1}`} />
                   <Link
                     to={`/Personal/${empleado._id}`}
                     className="btn-direction"

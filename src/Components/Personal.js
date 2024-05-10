@@ -7,6 +7,7 @@ import { useFilePicker } from "use-file-picker";
 import { useParams } from "react-router-dom";
 import TextareaAutosize from "react-textarea-autosize";
 import { FileAmountLimitValidator } from "use-file-picker/validators";
+import axios from 'axios';
 
 const apiurl = "http://localhost:3000";
 
@@ -17,27 +18,40 @@ function Personal() {
   const [isEditing, setIsEditing] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [EducacionCargada, setEducacionCargada] = useState(false);
-  const [redesSocialesCargadas, setRedesSocialesCargadas] = useState(false);
-  const [expedienteClinicoCargado, setExpedienteClinicoCargado] =
-    useState(false);
+  const [datosRH, setDatosRH] = useState([]);
 
-  //Comentado por acrulizacion futura
-  /*
   const [selectedOption, setSelectedOption] = useState([]);
 
-    const [jerarquiaEmpleados, setJerarquiaEmpleados] = useState({
-      name: "Jerarquía de Empleados",
-      children: [],
-    });
+  const [jerarquiaEmpleados, setJerarquiaEmpleados] = useState({
+    name: "Jerarquía de Empleados",
+    children: [],
+  });
 
-  
-    const [nuevaArea, setNuevaArea] = useState("");
-    const [ubicacionBotonAgregarArea, setUbicacionBotonAgregarArea] = useState(
-      "Jerarquía de Empleados"
-    );
-    const [errorAgregarElemento, setErrorAgregarElemento] = useState("");
-    const [listaAreas, setListaAreas] = useState(["Jerarquía de Empleados"]);
-*/
+  const [errorAgregarElemento, setErrorAgregarElemento] = useState("");
+ 
+  const [listaAreas, setListaAreas] = useState();
+
+  const obtenerTodasLasAreas = (arbol) => {
+    let areas = new Set(["Jerarquía de Empleados"]);
+
+    if (arbol.children) {
+      for (const area of arbol.children) {
+        areas.add(area.name);
+
+        if (area.children) {
+          const areasHijas = obtenerTodasLasAreas(area);
+          areas = new Set([...areas, ...areasHijas]);
+        }
+      }
+    }
+
+    return [...areas];
+  };
+
+  useEffect(() => {
+    const todasLasAreas = obtenerTodasLasAreas(jerarquiaEmpleados);
+    setListaAreas(todasLasAreas);
+  }, [jerarquiaEmpleados]);
 
   /*Usestate para redes sociales*/
   const [redesSociales, setRedesSociales] = useState([
@@ -89,6 +103,8 @@ function Personal() {
   //Expediente clinico
 
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [selectedPdf, setSelectedPdf] = useState(null);
+  const [selectedPdfIndex, setSelectedPdfIndex] = useState(null);
 
   const { openFilePicker, filesContent } = useFilePicker({
     readAs: "DataURL",
@@ -106,7 +122,22 @@ function Personal() {
     PDFSegurodegastosmedicos: null, // Initialize as null
   });
 
-  const descargarPDF = () => {
+  const filesData = selectedFiles.map((file) => ({
+    name: file.name,
+    content: file.content,
+  }));
+
+  const datosExpedienteClinico = {
+    empleado_id: id.trim(),
+    tipoSangre: expedienteclinico.tipoSangre,
+    Padecimientos: expedienteclinico.Padecimientos,
+    NumeroSeguroSocial: expedienteclinico.NumeroSeguroSocial,
+    Segurodegastosmedicos: expedienteclinico.Datossegurodegastos,
+    PDFSegurodegastosmedicos: filesData,
+  };
+
+  //Inhabilidato temp
+    const descargarPDF = () => {
     const pdfData = expedienteclinico.PDFSegurodegastosmedicos;
 
     if (pdfData) {
@@ -131,20 +162,75 @@ function Personal() {
     }
   };
   const handlePDFChangeD = (fileContent) => {
-    // Assuming fileContent is an object with 'content' and 'name' properties
-    setexpedienteclinico((prev) => ({
-      ...prev,
-      PDFSegurodegastosmedicos: fileContent,
-    }));
+    setSelectedFiles((prevFiles) => [...prevFiles, fileContent]);
   };
 
   useEffect(() => {
     if (filesContent && filesContent.length > 0) {
       const fileContent = filesContent[0];
-
       handlePDFChangeD(fileContent);
     }
   }, [filesContent]);
+   //Expediente clinico
+  //PDFs en post indiv
+  const handlePdfChange = (e) => {
+    const files = e.target.files;
+    handlePDFChange(files);
+  };  
+
+  const handlePdfSelection = (e) => {
+    const selectedIndex = parseInt(e.target.value);
+    setSelectedPdfIndex(selectedIndex);
+  };
+
+  const visualizarPdf = () => {
+    if (selectedPdfIndex !== null) {
+      const pdf = selectedFiles[selectedPdfIndex];
+      if (RH.ExpedienteDigitalPDF) {
+        // Abrir la URL en una nueva pestaña
+        window.open(RH.ExpedienteDigitalPDF, '_blank');
+      } else if (pdf.content) {
+        // Enviar el contenido base64 del PDF al servidor para guardarlo como archivo físico
+        // Supongamos que aquí se envía el contenido base64 al servidor y se guarda como un archivo PDF físico
+  
+        // Una vez que el PDF está guardado en el servidor, se proporciona una URL para acceder a él
+        // Supongamos que 'pdfUrl' es la URL proporcionada por el servidor
+        const pdfUrl = 'http://tudominio.com/pdfs/mi_pdf.pdf'; // Reemplaza con la URL proporcionada por tu servidor
+  
+        // Abrir la URL en una nueva pestaña
+        window.open(pdfUrl, '_blank');
+      } else {
+        console.error('El contenido del PDF no está disponible.');
+      }
+    } else {
+      console.error('No se ha seleccionado ningún PDF.');
+    }
+  };
+  
+  
+  
+
+  const descargarPdf = () => {
+    if (selectedPdfIndex !== null) {
+      const pdf = selectedFiles[selectedPdfIndex];
+      const { content, name } = pdf;
+
+      const byteCharacters = atob(content.split(",")[1]);
+      const byteNumbers = new Array(byteCharacters.length);
+
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: "application/pdf" });
+
+      const link = document.createElement("a");
+      link.href = window.URL.createObjectURL(blob);
+      link.download = name || "documento.pdf";
+      link.click();
+    }
+};
 
   /*Logica RH*/
 
@@ -167,21 +253,6 @@ function Personal() {
     selectedArea: "Jerarquía de Empleados",
   });
 
-  //Comentado por acrulizacion futura
-  /*
-  const guardarJerarquia = () => {
-    // Realizar la solicitud POST para guardar la jerarquía
-    fetch(`${apiurl}/jerarquia`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(jerarquiaEmpleados), // Enviar jerarquiaEmpleados directamente
-    })
-      .then((response) => response.json())
-  };
-
-
   const handleSelectChange = (e) => {
     setSelectedOption(e.target.value);
     setRH((prevRH) => ({
@@ -190,45 +261,6 @@ function Personal() {
     }));
   };
 
-
-  const agregarNuevoElemento = () => {
-
-  
-    const nuevaJerarquia = { ...jerarquiaEmpleados };
-    const areaSeleccionada = buscarArea(
-      nuevaJerarquia,
-      nuevoElemento.selectedArea
-    );
-  
-    if (!areaSeleccionada) {
-      setErrorAgregarElemento("Área no encontrada.");
-      return;
-    }
-  
-    if (!areaSeleccionada.children) {
-      areaSeleccionada.children = [];
-    }
-  
-    // Modificar para obtener nombre y apellidos
-    const nombreCompleto = `${empleadoEncontrado.Nombre} ${empleadoEncontrado.ApelPaterno} ${empleadoEncontrado.ApelMaterno}`;
-  
-    // Agregar un nodo con la propiedad adicional linkVariable
-    areaSeleccionada.children.push({
-      name: nombreCompleto,
-      attributes: { Cargo: RH.Puesto },
-      children: [],
-    });
-  
-    setJerarquiaEmpleados(nuevaJerarquia);
-    setNuevoElemento({
-      name: "",
-      attributes: { Cargo: "" },
-      selectedArea: nuevoElemento.selectedArea,
-    });
-    setErrorAgregarElemento("");
-    guardarJerarquia(); // Mover la llamada aquí después de realizar cambios
-  }; 
- 
   const buscarArea = (arbol, areaPrincipal) => {
     if (arbol.name === areaPrincipal) {
       return arbol;
@@ -245,7 +277,7 @@ function Personal() {
 
     return null;
   };
-*/
+
   const { openFilePicker: openRHPicker, filesContent: RHFilesContent } =
     useFilePicker({
       readAs: "DataURL",
@@ -286,11 +318,8 @@ function Personal() {
   };
 
   useEffect(() => {
-    console.log("RH Files Content:", RHFilesContent);
-
     if (RHFilesContent && RHFilesContent.length > 0) {
       const fileContent = RHFilesContent[0];
-      console.log("Selected RH File Content:", fileContent);
 
       handlePDFChange(fileContent);
     }
@@ -346,16 +375,11 @@ function Personal() {
         return response.json();
       })
       .then((json) => {
-        console.log("Respuesta completa del servidor:", json);
-
         setEducacion(json);
         setEducacionCargada(true);
 
         // Mover la lógica que depende del estado actualizado aquí
         if (!json || !json.Educacion || !Array.isArray(json.Educacion)) {
-          console.log(
-            "Los datos de educación no están en el formato esperado o no se han cargado."
-          );
         } else {
           try {
             const educationItemsCopy = json.Educacion.map((item) => ({
@@ -364,18 +388,9 @@ function Personal() {
               description: item.Descripcion,
             }));
             setEducationItems(educationItemsCopy);
-            console.log(
-              "Datos de educación mapeados a educationItems:",
-              educationItemsCopy
-            );
-          } catch (error) {
-            console.error("Error al mapear los datos de educación:", error);
-          }
+          } catch (error) {}
         }
         if (!json || !json.Experiencia || !Array.isArray(json.Experiencia)) {
-          console.log(
-            "Los datos de experiencia no están en el formato esperado o no se han cargado."
-          );
         } else {
           try {
             const experienceItemsCopy = json.Experiencia.map((item) => ({
@@ -384,13 +399,7 @@ function Personal() {
               description: item.Descripcion,
             }));
             SetExperienciaItems(experienceItemsCopy);
-            console.log(
-              "Datos de experiencia mapeados a experienceItems:",
-              experienceItemsCopy
-            );
-          } catch (error) {
-            console.error("Error al mapear los datos de experiencia:", error);
-          }
+          } catch (error) {}
         }
 
         if (
@@ -399,9 +408,6 @@ function Personal() {
           !json.Habilidades.Programacion ||
           !Array.isArray(json.Habilidades.Programacion)
         ) {
-          console.log(
-            "Los datos de habilidades no están en el formato esperado o no se han cargado."
-          );
         } else {
           try {
             const habilidadesItemsCopy = json.Habilidades.Programacion.map(
@@ -412,26 +418,14 @@ function Personal() {
             );
 
             setHabilidades(habilidadesItemsCopy);
-            console.log(
-              "Datos de habilidades mapeados a habilidades:",
-              habilidades
-            );
-          } catch (error) {
-            console.error("Error al mapear los datos de habilidades:", error);
-          }
+          } catch (error) {}
         }
         if (json && json.Descripcion) {
           setDescripcion(json.Descripcion);
-          console.log("Descripción cargada:", json.Descripcion);
         } else {
-          console.log(
-            "La descripción no está en el formato esperado o no se ha cargado."
-          );
         }
       })
-      .catch((error) => {
-        console.error("Error al cargar educación:", error);
-      });
+      .catch((error) => {});
   };
 
   const cargarRedesSocialesPorEmpleado = (empleadoId) => {
@@ -445,12 +439,7 @@ function Personal() {
         return response.json();
       })
       .then((json) => {
-        console.log("Respuesta completa del servidor (Redes Sociales):", json);
-
         if (!json || !json[0].RedesSociales) {
-          console.log(
-            "Los datos de redes sociales no están en el formato esperado o no se han cargado."
-          );
           return;
         }
 
@@ -461,16 +450,8 @@ function Personal() {
         }));
 
         setRedesSociales(redesSocialesCopy); // Actualiza el estado con los datos mapeados
-        setRedesSocialesCargadas(true);
-
-        console.log(
-          "Datos de redes sociales mapeados a redesSociales:",
-          redesSocialesCopy
-        );
       })
-      .catch((error) => {
-        console.error("Error al cargar redes sociales:", error);
-      });
+      .catch((error) => {});
   };
 
   const cargarExpedienteClinicoPorEmpleado = (empleadoId) => {
@@ -489,15 +470,7 @@ function Personal() {
         return response.json();
       })
       .then((json) => {
-        console.log(
-          "Respuesta completa del servidor (Expediente Clínico):",
-          json
-        );
-
         if (!json || !Array.isArray(json) || json.length === 0) {
-          console.log(
-            "Los datos de expediente clínico no están en el formato esperado o no se han cargado."
-          );
           return;
         }
 
@@ -511,12 +484,6 @@ function Personal() {
           PDFSegurodegastosmedicos:
             expedienteClinicoData.PDFSegurodegastosmedicos || null,
         });
-        setExpedienteClinicoCargado(true);
-
-        console.log(
-          "Datos de expediente clínico mapeados a expedienteClinico:",
-          expedienteClinicoData
-        );
       })
       .catch((error) => {
         console.error("Error al cargar expediente clínico:", error);
@@ -650,35 +617,49 @@ function Personal() {
       // Handle error here
     }
   };
-  //Comentado por acrulizacion futura
-  /*
-  const cargarrhpuesto =  () =>{
+
+  const cargarrhpuesto = () => {
     fetch(`${apiurl}/rh`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         // Puedes incluir otras cabeceras si son necesarias
       },
     })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error('Error al obtener los datos de RH');
-      }
-      return response.json();
-    })
-    .then((data) => {
-      console.log('Datos de RH:', data);
-      if (data && data.length > 0 && data[0].RH && data[0].RH.Puesto) {
-        setSelectedOption(data[0].RH.Puesto);
-      } else {
-        console.log('No se encontraron datos de RH.Puesto');
-      }
-    })
-    .catch((error) => {
-      console.error('Error de solicitud:', error.message);
-    });
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Error al obtener los datos de RH");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setDatosRH(data);
+      })
+      .catch((error) => {
+        console.error("Error de solicitud:", error.message);
+      });
   };
-*/
+
+  const cargarJerarquiaEmpleados = () => {
+    fetch(`${apiurl}/jerarquia`, {
+      method: "get",
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+    })
+      .then((response) => {
+        return response.json();
+      })
+      .then((json) => {
+        // Modificar el formato de la jerarquía si es necesario
+        setJerarquiaEmpleados(
+          json.jerarquia || { name: "Jerarquía de Empleados", children: [] }
+        );
+      })
+      .catch((error) => {
+        console.error("Error al cargar la jerarquía:", error);
+      });
+  };
 
   // Llamada a la función para cargar personas de contacto al iniciar la página
   useEffect(() => {
@@ -689,7 +670,8 @@ function Personal() {
     cargarDatosContactoPorEmpleado(id.trim());
     cargarPersonasContactoPorEmpleado(id.trim());
     fetchRhDataByEmpleadoId(id.trim(), setRH);
-    // cargarrhpuesto();
+    cargarJerarquiaEmpleados();
+    cargarrhpuesto();
   }, [id]);
 
   //Cargar los datos antes de iniciar la pagina
@@ -786,29 +768,34 @@ function Personal() {
   };
 
   /*Manda los datos al POST o PUT y tambien impide que el usuario siga editando*/
-  const handleSaveClick = () => {
+    //Expediente clinico
+  const handleSaveClick = async () => {
     setIsEditing(false);
-
-    if (filesContent.length > 0) {
-      const file = filesContent[0];
-
-      setexpedienteclinico((prev) => ({
-        ...prev,
-        PDFSegurodegastosmedicos: {
-          name: file.name,
-          content: file.content,
+  
+    const formData = new FormData();
+    selectedFiles.forEach((file, index) => {
+      formData.append(`pdf${index}`, file);
+    });
+  
+    formData.append('empleado_id', id.trim());
+    formData.append('tipoSangre', expedienteclinico.tipoSangre);
+    formData.append('Padecimientos', expedienteclinico.Padecimientos);
+    formData.append('NumeroSeguroSocial', expedienteclinico.NumeroSeguroSocial);
+    formData.append('Datossegurodegastos', expedienteclinico.Datossegurodegastos);
+  
+    try {
+      const response = await axios.post(`${apiurl}/expedienteclinico`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
         },
-      }));
+      });
+  
+      console.log(response.data);
+      // Aquí continuarías con el resto de la lógica para mostrar los datos actualizados en el front-end
+    } catch (error) {
+      console.error("Error uploading PDF:", error);
     }
-
-    const datosExpedienteClinico = {
-      empleado_id: id.trim(),
-      tipoSangre: expedienteclinico.tipoSangre,
-      Padecimientos: expedienteclinico.Padecimientos,
-      NumeroSeguroSocial: expedienteclinico.NumeroSeguroSocial,
-      Segurodegastosmedicos: expedienteclinico.Datossegurodegastos,
-      PDFSegurodegastosmedicos: expedienteclinico.PDFSegurodegastosmedicos,
-    };
+  
 
     if (RHFilesContent.length > 0) {
       const file = RHFilesContent[0];
@@ -1220,6 +1207,86 @@ function Personal() {
         });
     };
 
+    const agregarNuevoElemento = () => { 
+      const nuevaJerarquia = { ...jerarquiaEmpleados }; 
+
+      const areaSeleccionada = buscarArea(nuevaJerarquia, RH.JefeInmediato); 
+ 
+      if (!areaSeleccionada) { 
+        setErrorAgregarElemento("Área no encontrada."); 
+        return; 
+      } 
+ 
+      if (!areaSeleccionada.children) { 
+        areaSeleccionada.children = []; 
+      } 
+ 
+      if (empleadoEncontrado && RH) {
+        const nombreCompleto = `${empleadoEncontrado.Nombre} ${empleadoEncontrado.ApelPaterno} ${empleadoEncontrado.ApelMaterno}`;
+        const ids = empleadoEncontrado.Id;
+
+        // Buscar el nodo existente con el mismo ID 
+        const nodoExistente = areaSeleccionada.children.find(
+          (nodo) => nodo.attributes.Id === ids
+        );
+ 
+        if (nodoExistente) {
+          // Actualizar el nodo existente con el nuevo puesto
+          nodoExistente.name = nombreCompleto;
+          nodoExistente.attributes.Cargo = RH.Puesto;
+        } else {
+          // Crear un nuevo nodo para el empleado
+          const nuevoNodo = {
+            name: nombreCompleto,
+            attributes: {
+              Id: id.trim(),
+              Cargo: RH.Puesto,
+            },
+          };
+ 
+         // Agregar el nuevo nodo al área
+         areaSeleccionada.children.push(nuevoNodo);
+
+         // Eliminar el nodo existente si estaba presente en el árbol
+         areaSeleccionada.children = areaSeleccionada.children.filter(
+           (nodo) => nodo.attributes.Id !== id.trim()
+         );
+       }
+
+        setJerarquiaEmpleados(nuevaJerarquia); 
+        setNuevoElemento({ 
+          name: "", 
+          attributes: { Cargo: "" }, 
+        }); 
+        setErrorAgregarElemento(""); 
+        guardarJerarquia();
+      }
+    };
+    
+    // Función para eliminar un nodo por ID
+    const eliminarNodo = (nuevaJerarquia, id) => {
+      if (!nuevaJerarquia.children) return; // Si no hay hijos, salir de la función
+  
+      // Filtrar los hijos del nodo actual, excluyendo el nodo con el ID dado
+      nuevaJerarquia.children = nuevaJerarquia.children.filter(
+        (nodo) => nodo.attributes.Id !== id
+      );
+    
+      // Llamar recursivamente a la función para cada hijo del nodo actual
+      nuevaJerarquia.children.forEach((area) => eliminarNodo(area, id));
+    };
+    
+    const guardarJerarquia = () => { 
+      // Realizar la solicitud POST para guardar la jerarquía 
+      fetch(`${apiurl}/jerarquia`, { 
+        method: "POST", 
+        headers: { 
+          "Content-Type": "application/json", 
+        }, 
+        body: JSON.stringify(jerarquiaEmpleados), 
+      }).then((response) => response.json()); 
+    };
+    
     // Llamada a la función
     handleRHData();
 
@@ -1232,6 +1299,8 @@ function Personal() {
     handleEducacion();
 
     handleExpedienteClinico();
+
+    agregarNuevoElemento();
   };
 
   const handleAddSocial = () => {
@@ -1585,99 +1654,106 @@ function Personal() {
     return (
       <div className="redes-sociales-container">
         <div className="social-media-row">
-          <h2 className="heading">Redes Sociales</h2>
-          {isEditing ? (
-            <div>
-              {redesSociales.map((social, index) => (
-                <div key={index} className="social-media-content">
-                  <select
-                    value={social.redSocialSeleccionada}
-                    onChange={(e) => {
-                      const updatedRedesSociales = [...redesSociales];
-                      updatedRedesSociales[index].redSocialSeleccionada =
-                        e.target.value;
-                      setRedesSociales(updatedRedesSociales);
-                    }}
-                  >
-                    <option value="">Selecciona una red social</option>
-                    {RedSocial.map((option) => (
-                      <option key={option.label} value={option.label}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                  <h2>URL</h2>
-                  <TextareaAutosize
-                    value={social.URLRedSocial}
-                    onChange={(e) => {
-                      const updatedRedesSociales = [...redesSociales];
-                      updatedRedesSociales[index].URLRedSocial = e.target.value;
-                      setRedesSociales(updatedRedesSociales);
-                    }}
-                    className="EditarPersonal"
-                    placeholder="URL de la red social"
-                  />
-                  <h2>Username</h2>
-                  <TextareaAutosize
-                    value={social.NombreRedSocial}
-                    onChange={(e) => {
-                      const updatedRedesSociales = [...redesSociales];
-                      updatedRedesSociales[index].NombreRedSocial =
-                        e.target.value;
-                      setRedesSociales(updatedRedesSociales);
-                    }}
-                    className="EditarPersonal"
-                    placeholder="Nombre de usuario"
-                  />
-                  <button
-                    className="post-socialmedia"
-                    onClick={() => handleDeleteSocial(index)}
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              ))}
-              <button className="post-socialmedia" onClick={handleAddSocial}>
-                Agregar red social
-              </button>
-            </div>
-          ) : (
-            <div className="redes-sociales-cont">
-              {redesSociales.map((redSocial, index) => (
-                <a
-                  key={index}
-                  href={`https://${redSocial.URLRedSocial}`}
-                  className="red-social-link"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <div className="red-social-item">
-                    {redSocial.redSocialSeleccionada && (
-                      <svg
-                        className="red-social-icon"
-                        viewBox="0 0 10 10"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        {RedSocial.find(
-                          (social) =>
-                            social.label === redSocial.redSocialSeleccionada
-                        )?.value || "Icono no encontrado"}
-                      </svg>
-                    )}
-                    <div className="red-social-info">
-                      <p className="nombre-red-social">
-                        {redSocial.NombreRedSocial}
-                      </p>
-                    </div>
+          <div className="content">
+            <h2 className="heading">Redes Sociales</h2>
+            {isEditing ? (
+              <div>
+                
+                {redesSociales.map((social, index) => (
+                  <div key={index} className="social-media-content">
+                      <label>Red social:</label>
+                    <select
+                      value={social.redSocialSeleccionada}
+                      onChange={(e) => {
+                        const updatedRedesSociales = [...redesSociales];
+                        updatedRedesSociales[index].redSocialSeleccionada =
+                          e.target.value;
+                        setRedesSociales(updatedRedesSociales);
+                      }}
+                    >
+                      <option value="">Selecciona una red social</option>
+                      {RedSocial.map((option) => (
+                        <option key={option.label} value={option.label}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    <label>URL:</label>
+                    <input
+                      value={social.URLRedSocial}
+                      onChange={(e) => {
+                        const updatedRedesSociales = [...redesSociales];
+                        updatedRedesSociales[index].URLRedSocial =
+                          e.target.value;
+                        setRedesSociales(updatedRedesSociales);
+                      }}
+                      className="EditarPersonal"
+                      placeholder="URL de la red social"
+                    />
+                    <label>Username:</label>
+                    <input
+                      value={social.NombreRedSocial}
+                      onChange={(e) => {
+                        const updatedRedesSociales = [...redesSociales];
+                        updatedRedesSociales[index].NombreRedSocial =
+                          e.target.value;
+                        setRedesSociales(updatedRedesSociales);
+                      }}
+                      className="EditarPersonal"
+                      placeholder="Nombre de usuario"
+                    />
+                    <button
+                      className="post-socialmedia"
+                      onClick={() => handleDeleteSocial(index)}
+                    >
+                      Eliminar
+                    </button>
                   </div>
-                </a>
-              ))}
-            </div>
-          )}
+                ))}
+                <button className="post-socialmedia" onClick={handleAddSocial}>
+                  Agregar red social
+                </button>
+              </div>
+            ) : (
+              <div className="redes-sociales-cont">
+                {redesSociales.map((redSocial, index) => (
+                  <a
+                    key={index}
+                    href={`https://${redSocial.URLRedSocial}`}
+                    className="red-social-link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <div className="red-social-item">
+                      {redSocial.redSocialSeleccionada && (
+                        <svg
+                          className="red-social-icon"
+                          viewBox="0 0 20 10"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          {RedSocial.find(
+                            (social) =>
+                              social.label === redSocial.redSocialSeleccionada
+                          )?.value || "Icono no encontrado"}
+                        </svg>
+                      )}
+                      <div className="red-social-info">
+                        <p className="nombre-red-social">
+                          {redSocial.NombreRedSocial}
+                        </p>
+                      </div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );
   };
+
+  //Render Informacion personal
 
   const renderInfoPersonalSection = () => {
     return (
@@ -1776,7 +1852,7 @@ function Personal() {
 
   //Render RH
 
-  const renderRHSection = () => {
+  const renderRHSection = (data) => {
     return (
       <div className="RH-column">
         <div className="RH-box">
@@ -1784,43 +1860,71 @@ function Personal() {
             <div className="content">
               <label>Puesto:</label>
               {isEditing ? (
-                //Comentado por acrulizacion futura
-                /*
-                <div>
-                 <select id="puestos" value={selectedOption} onChange={handleSelectChange}>
-                 <option value="existing2">Puesto Existente 2</option>
-                 <option value="new">Agregar Nuevo Puesto</option>
-               </select>
-               */
-                //{selectedOption === "new" && (
-                <input
-                  type="text"
-                  value={RH.Puesto}
-                  onChange={(e) => handleRHChange("Puesto", e.target.value)}
-                />
+                <div className="RH-select">
+                  <select
+                    id="puestos"
+                    value={selectedOption}
+                    onChange={(e) => {
+                      handleSelectChange(e);
+                      if (e.target.value === "new") {
+                      } else {
+                        handleRHChange("Puesto", e.target.value);
+                      }
+                    }}
+                  >
+                    {[...new Set(datosRH.map((rh) => rh.Puesto))]
+                      .filter((puesto) => puesto.trim() !== "")
+                      .map((puesto, index) => (
+                        <option key={index} value={puesto}>
+                          {puesto}
+                        </option>
+                      ))}
+                    <option value="new">Agregar Nuevo Puesto</option>
+                  </select>
+
+                  {selectedOption === "new" && (
+                    <input
+                      type="text"
+                      className="EditarRH"
+                      value={RH.Puesto}
+                      onChange={(e) => handleRHChange("Puesto", e.target.value)}
+                    />
+                  )}
+                </div>
               ) : (
-                /*)}
-                </div>*/
                 <p>{RH.Puesto}</p>
               )}
-
-              <label>Jefe Inmediato:</label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={RH.JefeInmediato}
-                  onChange={(e) =>
-                    handleRHChange("JefeInmediato", e.target.value)
-                  }
-                />
-              ) : (
-                <p>{RH.JefeInmediato}</p>
-              )}
-
+       <label>Jefe Inmediato:</label>
+{isEditing ? (
+  <div className="RH-select">
+    <select
+      value={RH.JefeInmediato}
+      onChange={(e) =>
+        handleRHChange("JefeInmediato", e.target.value)
+      }
+    >
+      <option value="">Seleccione un Jefe Inmediato</option>{" "}
+      {listaAreas
+.filter(
+  (area) =>
+    area !==
+    `${empleadoEncontrado.Nombre} ${empleadoEncontrado.ApelPaterno} ${empleadoEncontrado.ApelMaterno}`
+) // Filtra el propio nombre
+        .map((area) => (
+          <option key={area} value={area}>
+            {area}
+          </option>
+        ))}
+    </select>
+      </div>
+) : (
+  <p>{RH.JefeInmediato}</p>
+)}
               <label>Hora de Entrada:</label>
               {isEditing ? (
                 <input
                   type="text"
+                  className="EditarRH"
                   value={RH.HorarioLaboral.HoraEntrada}
                   onChange={(e) =>
                     handleRHChange("HorarioLaboral.HoraEntrada", e.target.value)
@@ -1829,11 +1933,11 @@ function Personal() {
               ) : (
                 <p>{RH.HorarioLaboral.HoraEntrada}</p>
               )}
-
               <label>Hora de Salida:</label>
               {isEditing ? (
                 <input
                   type="text"
+                  className="EditarRH"
                   value={RH.HorarioLaboral.HoraSalida}
                   onChange={(e) =>
                     handleRHChange("HorarioLaboral.HoraSalida", e.target.value)
@@ -1847,6 +1951,7 @@ function Personal() {
               {isEditing ? (
                 <input
                   type="text"
+                  className="EditarRH"
                   value={RH.HorarioLaboral.TiempoComida}
                   onChange={(e) =>
                     handleRHChange(
@@ -1863,6 +1968,7 @@ function Personal() {
               {isEditing ? (
                 <input
                   type="text"
+                  className="EditarRH"
                   value={RH.HorarioLaboral.DiasTrabajados}
                   onChange={(e) =>
                     handleRHChange(
@@ -1901,7 +2007,6 @@ function Personal() {
                 <div className="RH-section"></div>
               )}
             </div>
-
             <div className="RH-archivo">
               {RH.ExpedienteDigitalPDF && (
                 <>
@@ -1920,81 +2025,194 @@ function Personal() {
   const renderPersonasContactoContent = () => {
     return (
       <div className="personasContacto-content">
-        <label>Nombre de Contacto:</label>
-        {isEditing ? (
-          <input
-            type="text"
-            value={personalcontacto.nombreContacto}
-            onChange={(e) =>
-              handlePersonalContactoChange("nombreContacto", e.target.value)
-            }
-            className="EditarEducacion"
-          />
-        ) : (
-          <p>{personalcontacto.nombreContacto}</p>
-        )}
-
-        <label>Parentesco:</label>
-        {isEditing ? (
-          <input
-            type="text"
-            value={personalcontacto.parenstesco}
-            onChange={(e) =>
-              handlePersonalContactoChange("parenstesco", e.target.value)
-            }
-            className="EditarEducacion"
-          />
-        ) : (
-          <p>{personalcontacto.parenstesco}</p>
-        )}
-
-        <label>Número de Teléfono:</label>
-        {isEditing ? (
-          <input
-            type="text"
-            value={personalcontacto.telefonoContacto}
-            onChange={(e) =>
-              handlePersonalContactoChange("telefonoContacto", e.target.value)
-            }
-            className="EditarEducacion"
-            maxLength={11}
-            onKeyPress={(e) => {
-              if (isNaN(Number(e.key))) {
-                e.preventDefault();
+        <div className="content">
+          <label>Nombre de Contacto:</label>
+          {isEditing ? (
+            <input
+              type="text"
+              value={personalcontacto.nombreContacto}
+              onChange={(e) =>
+                handlePersonalContactoChange("nombreContacto", e.target.value)
               }
-            }}
-          />
-        ) : (
-          <p>{personalcontacto.telefonoContacto}</p>
-        )}
+              className="EditarEducacion"
+            />
+          ) : (
+            <p>{personalcontacto.nombreContacto}</p>
+          )}
 
-        <label>Correo del Contacto:</label>
-        {isEditing ? (
-          <input
-            type="text"
-            value={personalcontacto.correoContacto}
-            onChange={(e) =>
-              handlePersonalContactoChange("correoContacto", e.target.value)
-            }
-            className="EditarEducacion"
-          />
-        ) : (
-          <p>{personalcontacto.correoContacto}</p>
-        )}
+          <label>Parentesco:</label>
+          {isEditing ? (
+            <input
+              type="text"
+              value={personalcontacto.parenstesco}
+              onChange={(e) =>
+                handlePersonalContactoChange("parenstesco", e.target.value)
+              }
+              className="EditarEducacion"
+            />
+          ) : (
+            <p>{personalcontacto.parenstesco}</p>
+          )}
 
-        <label>Dirección del Contacto:</label>
-        {isEditing ? (
-          <input
-            type="text"
-            value={personalcontacto.direccionContacto}
-            onChange={(e) =>
-              handlePersonalContactoChange("direccionContacto", e.target.value)
-            }
-            className="EditarEducacion"
-          />
-        ) : (
-          <p>{personalcontacto.direccionContacto}</p>
-        )}
+          <label>Número de Teléfono:</label>
+          {isEditing ? (
+            <input
+              type="text"
+              value={personalcontacto.telefonoContacto}
+              onChange={(e) =>
+                handlePersonalContactoChange("telefonoContacto", e.target.value)
+              }
+              className="EditarEducacion"
+              maxLength={11}
+              onKeyPress={(e) => {
+                if (isNaN(Number(e.key))) {
+                  e.preventDefault();
+                }
+              }}
+            />
+          ) : (
+            <p>{personalcontacto.telefonoContacto}</p>
+          )}
+
+          <label>Correo del Contacto:</label>
+          {isEditing ? (
+            <input
+              type="text"
+              value={personalcontacto.correoContacto}
+              onChange={(e) =>
+                handlePersonalContactoChange("correoContacto", e.target.value)
+              }
+              className="EditarEducacion"
+            />
+          ) : (
+            <p>{personalcontacto.correoContacto}</p>
+          )}
+
+          <label>Dirección del Contacto:</label>
+          {isEditing ? (
+            <input
+              type="text"
+              value={personalcontacto.direccionContacto}
+              onChange={(e) =>
+                handlePersonalContactoChange(
+                  "direccionContacto",
+                  e.target.value
+                )
+              }
+              className="EditarEducacion"
+            />
+          ) : (
+            <p>{personalcontacto.direccionContacto}</p>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+    //Expediente clinico
+  const renderExpedienteClinicoSection = () => {
+    return (
+      <div className="expediente-clinico">
+        <div className=".">
+          <h3>Expediente Clínico</h3>
+          {isEditing ? (
+            <div className="content">
+              <label>Tipo de Sangre:</label>
+              <select
+                id="tipoSangre"
+                value={expedienteclinico.tipoSangre}
+                onChange={handleEditTipoSangre}
+              >
+                <option value="">Selecciona el tipo de sangre</option>
+                {opcionesTipoSangre.map((tipo) => (
+                  <option key={tipo} value={tipo}>
+                    {tipo}
+                  </option>
+                ))}
+              </select>
+
+              <label>Padecimientos:</label>
+              <input
+                value={expedienteclinico.Padecimientos}
+                onChange={handleEditPadecimientos}
+                className="EditarPersonal"
+                placeholder="Padecimientos"
+              />
+
+              <label>Numero del seguro social:</label>
+              <input
+                type="text"
+                value={expedienteclinico.NumeroSeguroSocial}
+                onChange={handleEditNumeroSeguroSocial}
+                onKeyPress={(e) => {
+                  if (isNaN(Number(e.key))) {
+                    e.preventDefault();
+                  }
+                }}
+                className="EditarPersonal"
+                placeholder="Numero del seguro social"
+                maxLength={11}
+              />
+
+              <label>Datos del seguro de gastos medicos:</label>
+              <input
+                value={expedienteclinico.Datossegurodegastos}
+                onChange={handleEditsegurodegastos}
+                className="EditarPersonal"
+                placeholder="Seguro de gastos medicos mayores"
+              />
+
+              <div className="rh-select-archivo">
+                <button onClick={openFilePicker}>
+                  Seleccionar Archivo PDF
+                </button>
+                {selectedFiles.map((file, index) => (
+                  <div key={index}>
+                    <p>{file.name}</p>
+                    <img
+                      style={{
+                        width: 200,
+                        height: 200,
+                        marginTop: 10,
+                      }}
+                      alt={file.name}
+                      src={file.content}
+                    ></img>
+                    <br />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="expediente-clinico-content">
+              <label>Tipo de Sangre:</label>
+              <p>{expedienteclinico.tipoSangre}</p>
+
+              <label>Padecimientos:</label>
+              <p>{expedienteclinico.Padecimientos}</p>
+
+              <label>Numero del seguro social:</label>
+              <p>{expedienteclinico.NumeroSeguroSocial}</p>
+
+              <label>Datos del seguro de gastos medicos:</label>
+              <p>{expedienteclinico.Datossegurodegastos}</p>
+            </div>
+          )}
+          <div className="Expedienteclinico-archivo">
+            <select onChange={handlePdfSelection}>
+              <option value={null}>Seleccionar PDF</option>
+              {selectedFiles.map((file, index) => (
+                <option key={index} value={index}>{file.name}</option>
+              ))}
+            </select>
+            {selectedPdfIndex !== null && (
+              <>
+                <button onClick={visualizarPdf}>Visualizar PDF</button>
+                <button onClick={descargarPdf}>Descargar PDF</button>
+              </>
+            )}
+          </div>
+        </div>
       </div>
     );
   };
@@ -2010,7 +2228,7 @@ function Personal() {
           </h2>
           <div className="circle-spin"></div>
           <div className="about-img">
-            <img src={empleadoEncontrado.Fotografia} alt="about" />
+            <img src={empleadoEncontrado.Fotografias[0]} alt="about" />
           </div>
 
           <div className="about-content">
@@ -2033,99 +2251,7 @@ function Personal() {
               <div className="redes-sociales-containter">
                 {renderRedesSociales()}
               </div>
-              <div className="expediente-clinico">
-                <h3>Expediente Clínico</h3>
-                {isEditing ? (
-                  <div class="content">
-                    <label>Tipo de Sangre:</label>
-                    <select
-                      id="tipoSangre"
-                      value={expedienteclinico.tipoSangre}
-                      onChange={handleEditTipoSangre}
-                    >
-                      <option value="">Selecciona el tipo de sangre</option>
-                      {opcionesTipoSangre.map((tipo) => (
-                        <option key={tipo} value={tipo}>
-                          {tipo}
-                        </option>
-                      ))}
-                    </select>
-                    <label>Padecimientos:</label>
-                    <TextareaAutosize
-                      value={expedienteclinico.Padecimientos}
-                      onChange={handleEditPadecimientos}
-                      className="EditarPersonal"
-                      placeholder="Padecimientos"
-                    />
-                    <label>Numero del seguro social:</label>
-                    <TextareaAutosize
-                      value={expedienteclinico.NumeroSeguroSocial}
-                      onChange={handleEditNumeroSeguroSocial}
-                      onKeyPress={(e) => {
-                        if (isNaN(Number(e.key))) {
-                          e.preventDefault();
-                        }
-                      }}
-                      className="EditarPersonal"
-                      placeholder="Numero del seguro social"
-                      maxLength={11}
-                    />
-                    <label>Datos del seguro de gastos medicos:</label>
-                    <TextareaAutosize
-                      value={expedienteclinico.Datossegurodegastos}
-                      onChange={handleEditsegurodegastos}
-                      className="EditarPersonal"
-                      placeholder="Seguro de gastos medicos mayores"
-                    />
-                    <div>
-                      <button onClick={openFilePicker}>
-                        Seleccionar Archivo PDF
-                      </button>
-
-                      {selectedFiles.map((file, index) => (
-                        <div key={index}>
-                          <p>{file.name}</p>
-                          <img
-                            style={{
-                              width: 200,
-                              height: 200,
-                              marginTop: 10,
-                            }}
-                            alt={file.name}
-                            src={file.content}
-                          ></img>
-                          <br />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  // Si no está editando, solo muestra el nombre del archivo PDF
-                  <div className="expediente-clinico">
-                    <div className="expediente-clinico-content">
-                      <label>Tipo de Sangre:</label>
-                      <p>{expedienteclinico.tipoSangre}</p>
-                      <label>Padecimientos:</label>
-                      <p>{expedienteclinico.Padecimientos}</p>
-                      <label>Numero del seguro social:</label>
-                      <p>{expedienteclinico.NumeroSeguroSocial}</p>
-                      <label>Datos del seguro de gastos medicos:</label>
-                      <p>{expedienteclinico.Datossegurodegastos}</p>
-                    </div>
-                    <div className="Expedienteclinico-archivo">
-                      {expedienteclinico.PDFSegurodegastosmedicos && (
-                        <>
-                          <p>
-                            Nombre del PDF:
-                            {expedienteclinico.PDFSegurodegastosmedicos.name}
-                          </p>
-                          <button onClick={descargarPDF}>Descargar PDF</button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
+              <div>{renderExpedienteClinicoSection()}</div>
             </div>
             <div className="right-column">
               <div className="content">
